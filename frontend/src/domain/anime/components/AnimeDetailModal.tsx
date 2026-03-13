@@ -3,7 +3,7 @@ import { getAnimeDetail } from "../api/animeApi";
 import type { AnimeDetail } from "../types";
 
 interface AnimeDetailModalProps {
-  id: string;
+  id: number;
   onClose: () => void;
 }
 
@@ -183,16 +183,6 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
                     {anime.airYearQuarter && (
                       <span className="info-air-date">
                         {anime.airYearQuarter}
-                      </span>
-                    )}
-                    {anime.contentRating && (
-                      <span className="info-rating px-2 py-0.5 border border-content/20 rounded text-xs">
-                        {anime.contentRating}
-                      </span>
-                    )}
-                    {anime.isEnding && (
-                      <span className="info-ending px-2 py-0.5 bg-content/10 rounded text-xs">
-                        완결
                       </span>
                     )}
                   </div>

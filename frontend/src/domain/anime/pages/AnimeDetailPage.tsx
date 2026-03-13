@@ -13,7 +13,7 @@ const AnimeDetailPage: FC = () => {
     if (!id) return
     setLoading(true)
     setError(false)
-    getAnimeDetail(id)
+    getAnimeDetail(Number(id))
       .then(setAnime)
       .catch(() => setError(true))
       .finally(() => setLoading(false))
@@ -115,12 +115,6 @@ const AnimeDetailPage: FC = () => {
       <div className="info-row flex flex-wrap gap-4 text-sm text-subtle mb-6">
         {anime.medium && <span className="font-medium text-content">{anime.medium}</span>}
         {anime.airYearQuarter && <span>{anime.airYearQuarter}</span>}
-        {anime.contentRating && (
-          <span className="px-2 py-0.5 border border-content/20 rounded text-xs">{anime.contentRating}</span>
-        )}
-        {anime.isEnding && (
-          <span className="px-2 py-0.5 bg-content/10 rounded text-xs">완결</span>
-        )}
       </div>
 
       {/* Description */}
@@ -173,6 +167,7 @@ const AnimeDetailPage: FC = () => {
           </div>
         </section>
       )}
+
     </div>
   )
 }

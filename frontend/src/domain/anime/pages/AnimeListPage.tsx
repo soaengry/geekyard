@@ -18,7 +18,7 @@ const AnimeListPage: FC = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [fetchError, setFetchError] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [filterData, setFilterData] = useState<AnimeFilter | null>(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
@@ -31,8 +31,7 @@ const AnimeListPage: FC = () => {
 
   const filterKey = `${query}|${genres.join(",")}|${tags.join(",")}|${years.join(",")}`;
 
-  const activeFilterCount =
-    genres.length + tags.length + years.length;
+  const activeFilterCount = genres.length + tags.length + years.length;
 
   // 필터 옵션 1회 fetch
   useEffect(() => {
@@ -136,9 +135,7 @@ const AnimeListPage: FC = () => {
       const current = next.getAll("tags");
       next.delete("tags");
       if (current.includes(tag)) {
-        current
-          .filter((t) => t !== tag)
-          .forEach((t) => next.append("tags", t));
+        current.filter((t) => t !== tag).forEach((t) => next.append("tags", t));
       } else {
         [...current, tag].forEach((t) => next.append("tags", t));
       }
@@ -212,11 +209,7 @@ const AnimeListPage: FC = () => {
               className="mobile-filter-btn md:hidden shrink-0 flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-content/20 bg-surface text-content hover:border-primary hover:text-primary transition-colors"
               onClick={() => setMobileFilterOpen(true)}
             >
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
+              <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                 <path
                   fillRule="evenodd"
                   d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z"
@@ -295,9 +288,7 @@ const AnimeListPage: FC = () => {
             <div className="empty-state text-center py-20 text-subtle">
               <p className="text-4xl mb-4">🎬</p>
               <p className="text-lg font-medium">검색 결과가 없습니다</p>
-              <p className="text-sm mt-2">
-                다른 검색어나 장르를 시도해보세요
-              </p>
+              <p className="text-sm mt-2">다른 검색어나 장르를 시도해보세요</p>
             </div>
           )}
         </div>
@@ -320,10 +311,7 @@ const AnimeListPage: FC = () => {
       />
 
       {selectedId && (
-        <AnimeDetailModal
-          id={selectedId}
-          onClose={() => setSelectedId(null)}
-        />
+        <AnimeDetailModal id={selectedId} onClose={() => setSelectedId(null)} />
       )}
     </div>
   );
