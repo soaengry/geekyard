@@ -2,6 +2,7 @@ import { FC, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getAnimeDetail } from '../api/animeApi'
 import type { AnimeDetail } from '../types'
+import ReviewTab from '../components/ReviewTab'
 
 const AnimeDetailPage: FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -168,6 +169,11 @@ const AnimeDetailPage: FC = () => {
         </section>
       )}
 
+      {/* Reviews */}
+      <section className="review-section mb-8">
+        <h2 className="section-title text-lg font-bold text-content mb-3">리뷰</h2>
+        <ReviewTab animeId={anime.id} />
+      </section>
     </div>
   )
 }
