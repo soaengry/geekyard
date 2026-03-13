@@ -1,95 +1,79 @@
 package com.soaengry.geekyard.domain.anime.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeDetailResponse;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeFilterResponse;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeListItemResponse;
 import com.soaengry.geekyard.domain.anime.entity.Anime;
-import com.soaengry.geekyard.domain.anime.entity.AnimeFilter;
 import com.soaengry.geekyard.domain.anime.exception.AnimeErrorCode;
 import com.soaengry.geekyard.domain.anime.exception.AnimeException;
-import com.soaengry.geekyard.domain.anime.repository.AnimeFilterRepository;
+import com.soaengry.geekyard.domain.anime.repository.AnimeMetadataRepository;
+import com.soaengry.geekyard.domain.anime.repository.AnimeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AnimeService {
 
-    private final MongoTemplate mongoTemplate;
-    private final AnimeFilterRepository animeFilterRepository;
+    private final AnimeRepository animeRepository;
+    private final AnimeMetadataRepository animeMetadataRepository;
+    private final ObjectMapper objectMapper;
 
     public AnimeFilterResponse getAnimeFilter() {
-        AnimeFilter filter = animeFilterRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new AnimeException(AnimeErrorCode.ANIME_NOT_FOUND));
-        return AnimeFilterResponse.from(filter);
+        List<String> genres = animeMetadataRepository.findDistinctGenres();
+        List<String> tags = animeMetadataRepository.findDistinctTags();
+        List<String> years = animeRepository.findDistinctAirYearQuartersDesc();
+        return AnimeFilterResponse.from(genres, tags, years);
     }
 
     public Page<AnimeListItemResponse> searchAnime(
             String q, List<String> genres, List<String> tags, List<String> years, int page, int size) {
-        List<Criteria> criteriaList = new ArrayList<>();
 
-        if (StringUtils.hasText(q)) {
-            criteriaList.add(Criteria.where("name").regex(q, "i"));
-        }
-        if (genres != null && !genres.isEmpty()) {
-            criteriaList.add(Criteria.where("genres").all(genres));
-        }
-        if (tags != null && !tags.isEmpty()) {
-            criteriaList.add(Criteria.where("tags").all(tags));
-        }
-        if (years != null && !years.isEmpty()) {
-            List<Criteria> yearCriteria = years.stream()
-                    .map(year -> Criteria.where("air_year_quarter").regex(buildYearPattern(year)))
-                    .toList();
-            Criteria yearFilter = yearCriteria.size() == 1
-                    ? yearCriteria.get(0)
-                    : new Criteria().orOperator(yearCriteria.toArray(new Criteria[0]));
-            criteriaList.add(yearFilter);
+        String queryParam = StringUtils.hasText(q) ? q : null;
+        String genresJson = (genres != null && !genres.isEmpty()) ? toJsonArray(genres) : null;
+        String tagsJson = (tags != null && !tags.isEmpty()) ? toJsonArray(tags) : null;
+
+        boolean hasYears = years != null && !years.isEmpty();
+        List<String> yearValues = hasYears ? years : List.of("_");
+
+        PageRequest pageable = PageRequest.of(page, size);
+        Page<Long> idPage = animeRepository.searchAnimeIds(queryParam, genresJson, tagsJson, hasYears, yearValues, pageable);
+
+        List<Long> ids = idPage.getContent();
+        if (ids.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, idPage.getTotalElements());
         }
 
-        Query query = criteriaList.isEmpty()
-                ? new Query()
-                : new Query(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
-
-        long total = mongoTemplate.count(query, Anime.class);
-
-        query.skip((long) page * size).limit(size);
-        List<Anime> animes = mongoTemplate.find(query, Anime.class);
+        List<Anime> animes = animeRepository.findAllByIdWithMetadata(ids);
 
         List<AnimeListItemResponse> content = animes.stream()
                 .map(AnimeListItemResponse::from)
                 .toList();
 
-        return new PageImpl<>(content, PageRequest.of(page, size), total);
+        return new PageImpl<>(content, pageable, idPage.getTotalElements());
     }
 
-    public AnimeDetailResponse getAnimeDetail(String id) {
-        Anime anime = mongoTemplate.findById(id, Anime.class);
-        if (anime == null) {
-            throw new AnimeException(AnimeErrorCode.ANIME_NOT_FOUND);
-        }
+    public AnimeDetailResponse getAnimeDetail(Long id) {
+        Anime anime = animeRepository.findByIdWithMetadata(id)
+                .orElseThrow(() -> new AnimeException(AnimeErrorCode.ANIME_NOT_FOUND));
         return AnimeDetailResponse.from(anime);
     }
 
-    private String buildYearPattern(String year) {
-        if ("2000년대 이전".equals(year)) {
-            return "19[0-9]{2}년";
+    private String toJsonArray(List<String> values) {
+        try {
+            return objectMapper.writeValueAsString(values);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Failed to serialize JSON array", e);
         }
-        if (year.endsWith("년대")) {
-            String decadeBase = year.replace("년대", "");
-            return decadeBase.substring(0, decadeBase.length() - 1) + "[0-9]년";
-        }
-        return year;
     }
 }
