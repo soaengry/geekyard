@@ -1,6 +1,7 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import { getAnimeDetail } from "../api/animeApi";
 import type { AnimeDetail } from "../types";
+import ReviewTab from "./ReviewTab";
 
 interface AnimeDetailModalProps {
   id: number;
@@ -259,6 +260,8 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
                     </div>
                   )}
                 </div>
+              ) : activeTab === "리뷰" ? (
+                <ReviewTab animeId={anime.id} />
               ) : (
                 <div className="tab-placeholder p-5 text-center text-subtle py-20">
                   <p>준비 중입니다</p>
