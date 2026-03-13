@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/auth/verify").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users/recover").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/{username}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/anime/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2

@@ -22,12 +22,17 @@ const Header: FC = () => {
   }
 
   return (
-    <header className="bg-surface border-b border-content/10 sticky top-0 z-10">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold text-primary tracking-tight">
-          GeekYard
-        </Link>
-        <nav className="flex items-center gap-3 text-sm">
+    <header className="app-header bg-surface border-b border-content/10 sticky top-0 z-10">
+      <div className="header-inner container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="header-left flex items-center gap-6">
+          <Link to="/" className="app-logo text-xl font-bold text-primary tracking-tight">
+            GeekYard
+          </Link>
+          <Link to="/anime" className="nav-link text-content hover:text-primary font-medium transition-colors text-sm">
+            애니
+          </Link>
+        </div>
+        <nav className="header-nav flex items-center gap-3 text-sm">
           {isAuthenticated ? (
             <>
               <Link
@@ -51,7 +56,7 @@ const Header: FC = () => {
               </Link>
               <button
                 onClick={handleLogout}
-                className="text-subtle hover:text-error text-sm font-medium transition-colors px-2 py-1"
+                className="logout-btn text-subtle hover:text-error text-sm font-medium transition-colors px-2 py-1"
               >
                 로그아웃
               </button>
