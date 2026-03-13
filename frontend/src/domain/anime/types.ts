@@ -62,3 +62,30 @@ export interface PageResponse<T> {
   number: number
   size: number
 }
+
+export interface ReviewResponse {
+  id: number
+  userId: number
+  nickname: string
+  profileImage: string | null
+  score: number
+  content: string
+  likeCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ReviewStatsResponse {
+  averageScore: number
+  totalCount: number
+}
+
+export interface CreateReviewRequest {
+  score: number
+  content: string
+}
+
+export interface UpdateReviewRequest {
+  score?: number
+  content?: string
+}
