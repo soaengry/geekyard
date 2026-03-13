@@ -2,12 +2,13 @@ package com.soaengry.geekyard.domain.anime.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.soaengry.geekyard.domain.anime.entity.Anime;
+import com.soaengry.geekyard.domain.anime.entity.AnimeMetadata;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public record AnimeDetailResponse(
-        String id,
-        Integer laftelId,
+        Long id,
         String name,
         String img,
         List<AnimeImageItem> images,
@@ -15,78 +16,88 @@ public record AnimeDetailResponse(
         List<String> genres,
         List<String> tags,
         String content,
-        Double avgRating,
+        BigDecimal avgRating,
         List<CastItem> casts,
         List<DirectorItem> directors,
         List<ProductionCompanyItem> productionCompanies,
         String medium,
         @JsonProperty("isAdult") Boolean isAdult,
-        @JsonProperty("isEnding") Boolean isEnding,
         String airYearQuarter,
-        String contentRating,
-        Integer seriesId
+        Long seriesId
 ) {
     public record AnimeImageItem(String optionName, String imgUrl, String cropRatio) {
-        public static AnimeImageItem from(Anime.AnimeImage image) {
+        public static AnimeImageItem from(AnimeMetadata.ImageData image) {
             return new AnimeImageItem(image.getOptionName(), image.getImgUrl(), image.getCropRatio());
         }
     }
 
     public record HighlightVideoItem(String contentId, String dashUrl, String hlsUrl) {
-        public static HighlightVideoItem from(Anime.HighlightVideo video) {
+        public static HighlightVideoItem from(AnimeMetadata.HighlightVideoData video) {
             if (video == null) return null;
             return new HighlightVideoItem(video.getContentId(), video.getDashUrl(), video.getHlsUrl());
         }
     }
 
     public record CastItem(String characterName, List<String> voiceActorNames) {
-        public static CastItem from(Anime.Cast cast) {
+        public static CastItem from(AnimeMetadata.CastData cast) {
             return new CastItem(cast.getCharacterName(), cast.getVoiceActorNames());
         }
     }
 
     public record DirectorItem(String name, String role) {
-        public static DirectorItem from(Anime.Director director) {
+        public static DirectorItem from(AnimeMetadata.DirectorData director) {
             return new DirectorItem(director.getName(), director.getRole());
         }
     }
 
     public record ProductionCompanyItem(String name) {
-        public static ProductionCompanyItem from(Anime.ProductionCompany company) {
+        public static ProductionCompanyItem from(AnimeMetadata.ProductionCompanyData company) {
             return new ProductionCompanyItem(company.getName());
         }
     }
 
     public static AnimeDetailResponse from(Anime anime) {
-        List<AnimeImageItem> images = anime.getImages() == null ? List.of() :
-                anime.getImages().stream().map(AnimeImageItem::from).toList();
-        List<CastItem> casts = anime.getCasts() == null ? List.of() :
-                anime.getCasts().stream().map(CastItem::from).toList();
-        List<DirectorItem> directors = anime.getDirectors() == null ? List.of() :
-                anime.getDirectors().stream().map(DirectorItem::from).toList();
-        List<ProductionCompanyItem> companies = anime.getProductionCompanies() == null ? List.of() :
-                anime.getProductionCompanies().stream().map(ProductionCompanyItem::from).toList();
+        AnimeMetadata metadata = anime.getMetadata();
+
+        List<AnimeImageItem> images = (metadata == null || metadata.getImages() == null) ? List.of() :
+                metadata.getImages().stream().map(AnimeImageItem::from).toList();
+        List<CastItem> casts = (metadata == null || metadata.getCasts() == null) ? List.of() :
+                metadata.getCasts().stream().map(CastItem::from).toList();
+        List<DirectorItem> directors = (metadata == null || metadata.getDirectors() == null) ? List.of() :
+                metadata.getDirectors().stream().map(DirectorItem::from).toList();
+        List<ProductionCompanyItem> companies = (metadata == null || metadata.getProductionCompanies() == null) ? List.of() :
+                metadata.getProductionCompanies().stream().map(ProductionCompanyItem::from).toList();
+        List<String> genres = (metadata == null || metadata.getGenres() == null) ? List.of() : metadata.getGenres();
+        List<String> tags = (metadata == null || metadata.getTags() == null) ? List.of() : metadata.getTags();
+
+        String img = deriveImg(images);
 
         return new AnimeDetailResponse(
                 anime.getId(),
-                anime.getLaftelId(),
                 anime.getName(),
-                anime.getImg(),
+                img,
                 images,
-                HighlightVideoItem.from(anime.getHighlightVideo()),
-                anime.getGenres(),
-                anime.getTags(),
-                anime.getContent(),
+                metadata == null ? null : HighlightVideoItem.from(metadata.getHighlightVideo()),
+                genres,
+                tags,
+                anime.getSynopsis(),
                 anime.getAvgRating(),
                 casts,
                 directors,
                 companies,
                 anime.getMedium(),
                 anime.getIsAdult(),
-                anime.getIsEnding(),
                 anime.getAirYearQuarter(),
-                anime.getContentRating(),
                 anime.getSeriesId()
         );
+    }
+
+    private static String deriveImg(List<AnimeImageItem> images) {
+        if (images == null || images.isEmpty()) return null;
+        return images.stream()
+                .filter(img -> "home_default".equals(img.optionName()))
+                .findFirst()
+                .map(AnimeImageItem::imgUrl)
+                .orElse(images.get(0).imgUrl());
     }
 }

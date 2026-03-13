@@ -33,7 +33,7 @@ export const getAnimeList = async (params: AnimeListParams = {}): Promise<PageRe
   return response.data.data
 }
 
-export const getAnimeDetail = async (id: string): Promise<AnimeDetail> => {
+export const getAnimeDetail = async (id: number): Promise<AnimeDetail> => {
   const response = await axiosInstance.get<{ data: AnimeDetail }>(ANIME_ENDPOINTS.DETAIL(id))
   return response.data.data
 }
