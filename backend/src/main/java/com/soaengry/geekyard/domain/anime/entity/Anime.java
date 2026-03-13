@@ -1,109 +1,72 @@
 package com.soaengry.geekyard.domain.anime.entity;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.util.List;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "anime")
 @Getter
 @NoArgsConstructor
-@Document(collection = "animation")
 public class Anime {
 
     @Id
-    private String id;
+    @Column(name = "id")
+    private Long id;
 
-    @Field("id")
-    private Integer laftelId;
-
+    @Column(name = "name", nullable = false)
     private String name;
 
-    private String img;
+    @Column(name = "series_id")
+    private Long seriesId;
 
-    private List<AnimeImage> images;
-
-    @Field("highlight_video")
-    private HighlightVideo highlightVideo;
-
-    private List<String> genres;
-
-    private List<String> tags;
-
-    private String content;
-
-    @Field("avg_rating")
-    private Double avgRating;
-
-    private List<Cast> casts;
-
-    private List<Director> directors;
-
-    @Field("production_companies")
-    private List<ProductionCompany> productionCompanies;
-
-    private String medium;
-
-    @Field("is_adult")
-    private Boolean isAdult;
-
-    @Field("is_ending")
-    private Boolean isEnding;
-
-    @Field("air_year_quarter")
+    @Column(name = "air_year_quarter")
     private String airYearQuarter;
 
-    @Field("content_rating")
-    private String contentRating;
+    @Column(name = "medium")
+    private String medium;
 
-    @Field("series_id")
-    private Integer seriesId;
+    @Column(name = "synopsis", columnDefinition = "TEXT")
+    private String synopsis;
 
-    private Integer rating;
+    @Column(name = "production")
+    private String production;
 
-    @Getter
-    @NoArgsConstructor
-    public static class AnimeImage {
-        @Field("option_name")
-        private String optionName;
-        @Field("img_url")
-        private String imgUrl;
-        @Field("crop_ratio")
-        private String cropRatio;
+    @Column(name = "avg_rating", precision = 3, scale = 2)
+    private BigDecimal avgRating;
+
+    @Column(name = "is_adult")
+    private Boolean isAdult;
+
+    @Column(name = "is_dubbed")
+    private Boolean isDubbed;
+
+    @Column(name = "is_uncensored")
+    private Boolean isUncensored;
+
+    @Column(name = "latest_episode_release_datetime")
+    private LocalDateTime latestEpisodeReleaseDatetime;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @OneToOne(mappedBy = "anime", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private AnimeMetadata metadata;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
-    @Getter
-    @NoArgsConstructor
-    public static class Cast {
-        @Field("character_name")
-        private String characterName;
-        @Field("voice_actor_names")
-        private List<String> voiceActorNames;
-    }
-
-    @Getter
-    @NoArgsConstructor
-    public static class Director {
-        private String name;
-        private String role;
-    }
-
-    @Getter
-    @NoArgsConstructor
-    public static class HighlightVideo {
-        @Field("content_id")
-        private String contentId;
-        @Field("dash_url")
-        private String dashUrl;
-        @Field("hls_url")
-        private String hlsUrl;
-    }
-
-    @Getter
-    @NoArgsConstructor
-    public static class ProductionCompany {
-        private String name;
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }
