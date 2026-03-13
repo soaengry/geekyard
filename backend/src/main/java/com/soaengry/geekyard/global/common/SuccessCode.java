@@ -21,7 +21,11 @@ public enum SuccessCode {
     VERIFICATION_EMAIL_SENT(200, "인증 메일이 발송되었습니다."),
     EMAIL_VERIFIED(200, "이메일 인증이 완료되었습니다."),
     ANIME_LIST(200, "애니메이션 목록을 조회했습니다."),
-    ANIME_DETAIL(200, "애니메이션 상세 정보를 조회했습니다.");
+    ANIME_DETAIL(200, "애니메이션 상세 정보를 조회했습니다."),
+    REVIEW_LIST(200, "리뷰 목록을 조회했습니다."),
+    REVIEW_CREATED(201, "리뷰가 등록되었습니다."),
+    REVIEW_UPDATED(200, "리뷰가 수정되었습니다."),
+    REVIEW_DELETED(200, "리뷰가 삭제되었습니다.");
 
     private final int code;
     private final String message;
