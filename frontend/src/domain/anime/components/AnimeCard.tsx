@@ -3,7 +3,7 @@ import type { AnimeListItem } from '../types'
 
 interface AnimeCardProps {
   anime: AnimeListItem
-  onSelect: (id: string) => void
+  onSelect: (id: number) => void
 }
 
 const AnimeCard: FC<AnimeCardProps> = ({ anime, onSelect }) => {
