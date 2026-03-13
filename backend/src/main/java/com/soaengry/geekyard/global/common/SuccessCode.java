@@ -19,7 +19,9 @@ public enum SuccessCode {
     ACCOUNT_DELETED(200, "계정이 삭제되었습니다."),
     ACCOUNT_RECOVERED(200, "계정이 복구되었습니다."),
     VERIFICATION_EMAIL_SENT(200, "인증 메일이 발송되었습니다."),
-    EMAIL_VERIFIED(200, "이메일 인증이 완료되었습니다.");
+    EMAIL_VERIFIED(200, "이메일 인증이 완료되었습니다."),
+    ANIME_LIST(200, "애니메이션 목록을 조회했습니다."),
+    ANIME_DETAIL(200, "애니메이션 상세 정보를 조회했습니다.");
 
     private final int code;
     private final String message;

@@ -1,5 +1,6 @@
 package com.soaengry.geekyard.global.exception;
 
+import com.soaengry.geekyard.domain.anime.exception.AnimeException;
 import com.soaengry.geekyard.domain.user.exception.UserException;
 import com.soaengry.geekyard.global.common.ApiResponse;
 import com.soaengry.geekyard.global.common.ErrorCode;
@@ -16,6 +17,14 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AnimeException.class)
+    public ResponseEntity<ApiResponse<?>> handleAnimeException(AnimeException e) {
+        log.warn("Anime Exception: {} - {}", e.getErrorCode().name(), e.getMessage());
+        HttpStatus status = determineHttpStatusFromCode(e.getErrorCode().name());
+        ErrorCode errorCode = ErrorCode.from(e.getErrorCode().name(), e.getMessage(), status);
+        return ResponseEntity.status(status).body(ApiResponse.error(errorCode));
+    }
 
     @ExceptionHandler(UserException.class)
     public ResponseEntity<ApiResponse<?>> handleUserException(UserException e) {
