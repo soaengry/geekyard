@@ -90,3 +90,18 @@ body {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
   }
 }
+
+/* ── Custom Scrollbar ─────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(var(--subtle), 0.3); border-radius: 9999px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(var(--subtle), 0.5); }
+
+.hover-scrollbar::-webkit-scrollbar-thumb { background: transparent; }
+.hover-scrollbar:hover::-webkit-scrollbar-thumb { background: rgba(var(--subtle), 0.3); }
+.hover-scrollbar:hover::-webkit-scrollbar-thumb:hover { background: rgba(var(--subtle), 0.5); }
+
+/* Firefox */
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(var(--subtle), 0.3) transparent; }
+.hover-scrollbar { scrollbar-width: none; }
+.hover-scrollbar:hover { scrollbar-width: thin; scrollbar-color: rgba(var(--subtle), 0.3) transparent; }

@@ -4,9 +4,9 @@ import Header from './Header'
 
 const Layout: FC = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="app-layout min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8">
+      <main className="app-main container mx-auto px-4 py-8">
         <Outlet />
       </main>
     </div>
