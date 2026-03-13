@@ -1,30 +1,30 @@
-import { FC, useState } from 'react'
-import FilterExpandModal from './FilterExpandModal'
+import { FC, useState } from "react";
+import FilterExpandModal from "./FilterExpandModal";
 
 interface AnimeSidebarProps {
-  availableGenres: string[]
-  availableTags: string[]
-  availableYears: string[]
-  selectedGenres: string[]
-  selectedTags: string[]
-  selectedYears: string[]
-  onGenreToggle: (genre: string) => void
-  onTagToggle: (tag: string) => void
-  onYearToggle: (year: string) => void
-  onClear: () => void
+  availableGenres: string[];
+  availableTags: string[];
+  availableYears: string[];
+  selectedGenres: string[];
+  selectedTags: string[];
+  selectedYears: string[];
+  onGenreToggle: (genre: string) => void;
+  onTagToggle: (tag: string) => void;
+  onYearToggle: (year: string) => void;
+  onClear: () => void;
 }
 
 export const CheckItem: FC<{
-  label: string
-  checked: boolean
-  onChange: () => void
+  label: string;
+  checked: boolean;
+  onChange: () => void;
 }> = ({ label, checked, onChange }) => (
   <label className="check-item flex items-center gap-2.5 cursor-pointer py-0.5 group">
     <div
       className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
         checked
-          ? 'bg-primary border-primary'
-          : 'border-content/30 group-hover:border-primary/60'
+          ? "bg-primary border-primary"
+          : "border-content/30 group-hover:border-primary/60"
       }`}
     >
       {checked && (
@@ -39,34 +39,43 @@ export const CheckItem: FC<{
         </svg>
       )}
     </div>
-    <input type="checkbox" checked={checked} onChange={onChange} className="sr-only" />
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      className="sr-only"
+    />
     <span
       className={`text-sm transition-colors ${
-        checked ? 'text-primary font-medium' : 'text-content group-hover:text-primary'
+        checked
+          ? "text-primary font-medium"
+          : "text-content group-hover:text-primary"
       }`}
     >
       {label}
     </span>
   </label>
-)
+);
 
 const SidebarSection: FC<{
-  title: string
-  items: string[]
-  selected: string[]
-  onToggle: (item: string) => void
-  limit: number
+  title: string;
+  items: string[];
+  selected: string[];
+  onToggle: (item: string) => void;
+  limit: number;
 }> = ({ title, items, selected, onToggle, limit }) => {
-  const [expandModalOpen, setExpandModalOpen] = useState(false)
+  const [expandModalOpen, setExpandModalOpen] = useState(false);
 
-  if (items.length === 0) return null
+  if (items.length === 0) return null;
 
-  const visibleItems = items.slice(0, limit)
-  const hasMore = items.length > limit
+  const visibleItems = items.slice(0, limit);
+  const hasMore = items.length > limit;
 
   return (
     <div>
-      <h3 className="sidebar-section-title text-xs font-bold text-subtle uppercase tracking-wider mb-3">{title}</h3>
+      <h3 className="sidebar-section-title text-xs font-bold text-subtle uppercase tracking-wider mb-3">
+        {title}
+      </h3>
       <div className="sidebar-section-items space-y-0.5">
         {visibleItems.map((item) => (
           <CheckItem
@@ -95,8 +104,8 @@ const SidebarSection: FC<{
         />
       )}
     </div>
-  )
-}
+  );
+};
 
 const AnimeSidebar: FC<AnimeSidebarProps> = ({
   availableGenres,
@@ -110,14 +119,20 @@ const AnimeSidebar: FC<AnimeSidebarProps> = ({
   onYearToggle,
   onClear,
 }) => {
-  const hasFilters = selectedGenres.length > 0 || selectedTags.length > 0 || selectedYears.length > 0
+  const hasFilters =
+    selectedGenres.length > 0 ||
+    selectedTags.length > 0 ||
+    selectedYears.length > 0;
 
   return (
     <div className="anime-sidebar space-y-6">
       <div className="sidebar-header flex items-center justify-between">
         <h2 className="sidebar-title text-sm font-bold text-content">필터</h2>
         {hasFilters && (
-          <button onClick={onClear} className="text-xs text-primary hover:underline">
+          <button
+            onClick={onClear}
+            className="text-xs text-primary hover:underline"
+          >
             초기화
           </button>
         )}
@@ -140,14 +155,14 @@ const AnimeSidebar: FC<AnimeSidebarProps> = ({
       />
 
       <SidebarSection
-        title="방영 연도"
+        title="방영 시기"
         items={availableYears}
         selected={selectedYears}
         onToggle={onYearToggle}
-        limit={4}
+        limit={8}
       />
     </div>
-  )
-}
+  );
+};
 
-export default AnimeSidebar
+export default AnimeSidebar;

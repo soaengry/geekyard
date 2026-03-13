@@ -1,12 +1,11 @@
 export interface AnimeListItem {
-  id: string
+  id: number
   name: string
   img: string
   genres: string[]
   avgRating: number
   medium: string
   isAdult: boolean
-  isEnding: boolean
 }
 
 export interface AnimeImage {
@@ -32,8 +31,7 @@ export interface AnimeHighlightVideo {
 }
 
 export interface AnimeDetail {
-  id: string
-  laftelId: number
+  id: number
   name: string
   img: string
   images: AnimeImage[]
@@ -47,9 +45,7 @@ export interface AnimeDetail {
   productionCompanies: { name: string }[]
   medium: string
   isAdult: boolean
-  isEnding: boolean
   airYearQuarter: string
-  contentRating: string
   seriesId: number
 }
 

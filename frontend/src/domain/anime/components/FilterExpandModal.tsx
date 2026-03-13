@@ -1,4 +1,5 @@
 import { FC, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { CheckItem } from './AnimeSidebar'
 
 interface FilterExpandModalProps {
@@ -24,9 +25,9 @@ const FilterExpandModal: FC<FilterExpandModalProps> = ({
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
-  return (
+  return createPortal(
     <div
-      className="filter-expand-overlay fixed inset-0 z-[60] flex items-center justify-center p-4"
+      className="filter-expand-overlay fixed inset-0 z-[999] flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
@@ -58,7 +59,8 @@ const FilterExpandModal: FC<FilterExpandModalProps> = ({
           ))}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
