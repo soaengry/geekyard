@@ -1,30 +1,43 @@
 package com.soaengry.geekyard.domain.anime.dto.response;
 
-import com.soaengry.geekyard.domain.anime.entity.Anime;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.soaengry.geekyard.domain.anime.entity.Anime;
+import com.soaengry.geekyard.domain.anime.entity.AnimeMetadata;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public record AnimeListItemResponse(
-        String id,
+        Long id,
         String name,
         String img,
         List<String> genres,
-        Double avgRating,
+        BigDecimal avgRating,
         String medium,
-        @JsonProperty("isAdult") Boolean isAdult,
-        @JsonProperty("isEnding") Boolean isEnding
+        @JsonProperty("isAdult") Boolean isAdult
 ) {
     public static AnimeListItemResponse from(Anime anime) {
+        AnimeMetadata metadata = anime.getMetadata();
+        List<String> genres = (metadata != null && metadata.getGenres() != null) ? metadata.getGenres() : List.of();
+        String img = deriveImg(metadata);
+
         return new AnimeListItemResponse(
                 anime.getId(),
                 anime.getName(),
-                anime.getImg(),
-                anime.getGenres(),
+                img,
+                genres,
                 anime.getAvgRating(),
                 anime.getMedium(),
-                anime.getIsAdult(),
-                anime.getIsEnding()
+                anime.getIsAdult()
         );
+    }
+
+    private static String deriveImg(AnimeMetadata metadata) {
+        if (metadata == null || metadata.getImages() == null || metadata.getImages().isEmpty()) return null;
+        return metadata.getImages().stream()
+                .filter(img -> "home_default".equals(img.getOptionName()))
+                .findFirst()
+                .map(AnimeMetadata.ImageData::getImgUrl)
+                .orElse(metadata.getImages().get(0).getImgUrl());
     }
 }

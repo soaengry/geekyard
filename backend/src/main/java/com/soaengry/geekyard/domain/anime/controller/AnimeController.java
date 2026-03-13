@@ -40,7 +40,7 @@ public class AnimeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<AnimeDetailResponse>> getAnimeDetail(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<AnimeDetailResponse>> getAnimeDetail(@PathVariable Long id) {
         AnimeDetailResponse result = animeService.getAnimeDetail(id);
         return ResponseEntity.ok(ApiResponse.ok(SuccessCode.ANIME_DETAIL, result));
     }
