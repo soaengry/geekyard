@@ -132,8 +132,10 @@ const MobileFilterDrawer: FC<MobileFilterDrawerProps> = ({
 
   return (
     <div
-      className={`mobile-filter-overlay fixed inset-0 z-40 transition-opacity duration-300 ${
-        open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+      className={`mobile-filter-overlay fixed inset-0 z-[999] transition-opacity duration-300 ${
+        open
+          ? "opacity-100 pointer-events-auto"
+          : "opacity-0 pointer-events-none"
       }`}
     >
       {/* Backdrop */}
@@ -187,7 +189,7 @@ const MobileFilterDrawer: FC<MobileFilterDrawerProps> = ({
             onToggle={onTagToggle}
           />
           <AccordionSection
-            title="방영 연도"
+            title="방영 시기"
             items={availableYears}
             selected={selectedYears}
             onToggle={onYearToggle}

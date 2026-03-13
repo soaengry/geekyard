@@ -6,7 +6,7 @@ spring:
 
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/geekyard
+    url: jdbc:postgresql://localhost:5432/${POSTGRESQL_DATABASE}
     username: ${POSTGRESQL_USERNAME}
     password: ${POSTGRESQL_PASSWORD}
 
