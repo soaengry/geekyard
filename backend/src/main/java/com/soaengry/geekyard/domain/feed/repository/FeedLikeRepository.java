@@ -21,6 +21,9 @@ public interface FeedLikeRepository extends JpaRepository<FeedLike, Long> {
     @Query("SELECT fl.feed.id FROM FeedLike fl WHERE fl.user = :user AND fl.feed.id IN :feedIds")
     List<Long> findLikedFeedIdsByUserAndFeedIds(@Param("user") User user, @Param("feedIds") List<Long> feedIds);
 
-    @Query("SELECT fl.feed FROM FeedLike fl JOIN FETCH fl.feed.user JOIN FETCH fl.feed.anime WHERE fl.user = :user ORDER BY fl.createdAt DESC")
+    @Query(value = "SELECT fl.feed FROM FeedLike fl JOIN FETCH fl.feed.user LEFT JOIN FETCH fl.feed.anime WHERE fl.user = :user ORDER BY fl.createdAt DESC",
+            countQuery = "SELECT COUNT(fl) FROM FeedLike fl WHERE fl.user = :user")
     Page<Feed> findLikedFeedsByUser(@Param("user") User user, Pageable pageable);
+
+    void deleteByFeed(Feed feed);
 }
