@@ -10,14 +10,23 @@ public record ReviewResponse(
         Long userId,
         String nickname,
         String profileImage,
+        Long animeId,
+        String animeName,
         BigDecimal score,
         String content,
         Integer likeCount,
+        boolean liked,
+        boolean bookmarked,
         boolean isSiteUser,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
     public static ReviewResponse from(AnimeReview review, String nickname, String profileImage) {
+        return from(review, nickname, profileImage, false, false);
+    }
+
+    public static ReviewResponse from(AnimeReview review, String nickname, String profileImage,
+                                       boolean liked, boolean bookmarked) {
         boolean siteUser = review.isSiteUser();
         Long userId = siteUser ? review.getUser().getId() : review.getExternalUserId();
         return new ReviewResponse(
@@ -25,9 +34,13 @@ public record ReviewResponse(
                 userId,
                 nickname,
                 profileImage,
+                review.getAnime().getId(),
+                review.getAnime().getName(),
                 review.getScore(),
                 review.getContent(),
                 review.getLikeCount(),
+                liked,
+                bookmarked,
                 siteUser,
                 review.getCreatedAt(),
                 review.getUpdatedAt()
