@@ -2,6 +2,8 @@ import { FC, useEffect, useMemo, useState } from "react";
 import { getAnimeDetail } from "../api/animeApi";
 import type { AnimeDetail } from "../types";
 import ReviewTab from "./ReviewTab";
+import FeedForm from "../../feed/components/FeedForm";
+import FeedList from "../../feed/components/FeedList";
 
 interface AnimeDetailModalProps {
   id: number;
@@ -15,6 +17,7 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("정보");
+  const [feedRefreshKey, setFeedRefreshKey] = useState(0);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -262,6 +265,15 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
                 </div>
               ) : activeTab === "리뷰" ? (
                 <ReviewTab animeId={anime.id} />
+              ) : activeTab === "피드" ? (
+                <div className="tab-feed p-5 space-y-4">
+                  <FeedForm
+                    preSelectedAnimeId={anime.id}
+                    preSelectedAnimeName={anime.name}
+                    onCreated={() => setFeedRefreshKey((k) => k + 1)}
+                  />
+                  <FeedList animeId={anime.id} refreshKey={feedRefreshKey} />
+                </div>
               ) : (
                 <div className="tab-placeholder p-5 text-center text-subtle py-20">
                   <p>준비 중입니다</p>
