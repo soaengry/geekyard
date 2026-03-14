@@ -68,9 +68,13 @@ export interface ReviewResponse {
   userId: number
   nickname: string
   profileImage: string | null
+  animeId: number
+  animeName: string
   score: number
   content: string
   likeCount: number
+  liked: boolean
+  bookmarked: boolean
   createdAt: string
   updatedAt: string
 }
