@@ -10,6 +10,8 @@ import com.soaengry.geekyard.domain.anime.exception.AnimeErrorCode;
 import com.soaengry.geekyard.domain.anime.exception.AnimeException;
 import com.soaengry.geekyard.domain.anime.repository.AnimeRepository;
 import com.soaengry.geekyard.domain.anime.repository.AnimeReviewRepository;
+import com.soaengry.geekyard.domain.anime.repository.ReviewBookmarkRepository;
+import com.soaengry.geekyard.domain.anime.repository.ReviewLikeRepository;
 import com.soaengry.geekyard.domain.user.entity.User;
 import com.soaengry.geekyard.global.util.NicknameGenerator;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,10 +33,21 @@ public class AnimeReviewService {
 
     private final AnimeReviewRepository animeReviewRepository;
     private final AnimeRepository animeRepository;
+    private final ReviewLikeRepository reviewLikeRepository;
+    private final ReviewBookmarkRepository reviewBookmarkRepository;
 
-    public Page<ReviewResponse> getReviews(Long animeId, Pageable pageable) {
-        return animeReviewRepository.findByAnimeIdWithUser(animeId, pageable)
-                .map(this::toResponse);
+    public Page<ReviewResponse> getReviews(Long animeId, Pageable pageable, User user) {
+        Page<AnimeReview> reviews = animeReviewRepository.findByAnimeIdWithUser(animeId, pageable);
+
+        List<Long> reviewIds = reviews.getContent().stream().map(AnimeReview::getId).collect(Collectors.toList());
+        Set<Long> likedIds = user != null
+                ? Set.copyOf(reviewLikeRepository.findLikedReviewIdsByUserAndReviewIds(user, reviewIds))
+                : Collections.emptySet();
+        Set<Long> bookmarkedIds = user != null
+                ? Set.copyOf(reviewBookmarkRepository.findBookmarkedReviewIdsByUserAndReviewIds(user, reviewIds))
+                : Collections.emptySet();
+
+        return reviews.map(review -> toResponse(review, likedIds.contains(review.getId()), bookmarkedIds.contains(review.getId())));
     }
 
     public ReviewStatsResponse getReviewStats(Long animeId) {
@@ -85,14 +101,18 @@ public class AnimeReviewService {
     }
 
     private ReviewResponse toResponse(AnimeReview review) {
+        return toResponse(review, false, false);
+    }
+
+    private ReviewResponse toResponse(AnimeReview review, boolean liked, boolean bookmarked) {
         if (review.isSiteUser()) {
             User user = review.getUser();
-            return ReviewResponse.from(review, user.getNickname(), user.getProfileImage());
+            return ReviewResponse.from(review, user.getNickname(), user.getProfileImage(), liked, bookmarked);
         }
         String nickname = review.getExternalUsername() != null
                 ? review.getExternalUsername()
                 : NicknameGenerator.generate(review.getExternalUserId());
-        return ReviewResponse.from(review, nickname, null);
+        return ReviewResponse.from(review, nickname, null, liked, bookmarked);
     }
 
     private AnimeReview findReviewOrThrow(Long reviewId, Long animeId) {
