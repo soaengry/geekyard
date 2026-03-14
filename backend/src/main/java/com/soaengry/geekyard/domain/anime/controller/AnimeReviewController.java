@@ -28,9 +28,10 @@ public class AnimeReviewController {
     public ResponseEntity<ApiResponse<Page<ReviewResponse>>> getReviews(
             @PathVariable Long animeId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal User user
     ) {
-        Page<ReviewResponse> reviews = animeReviewService.getReviews(animeId, PageRequest.of(page, size));
+        Page<ReviewResponse> reviews = animeReviewService.getReviews(animeId, PageRequest.of(page, size), user);
         return ResponseEntity.ok(ApiResponse.ok(SuccessCode.REVIEW_LIST, reviews));
     }
 
