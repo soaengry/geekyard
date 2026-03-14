@@ -25,7 +25,15 @@ public enum SuccessCode {
     REVIEW_LIST(200, "리뷰 목록을 조회했습니다."),
     REVIEW_CREATED(201, "리뷰가 등록되었습니다."),
     REVIEW_UPDATED(200, "리뷰가 수정되었습니다."),
-    REVIEW_DELETED(200, "리뷰가 삭제되었습니다.");
+    REVIEW_DELETED(200, "리뷰가 삭제되었습니다."),
+    FEED_LIST(200, "피드 목록을 조회했습니다."),
+    FEED_DETAIL(200, "피드 상세 정보를 조회했습니다."),
+    FEED_CREATED(201, "피드가 등록되었습니다."),
+    FEED_UPDATED(200, "피드가 수정되었습니다."),
+    FEED_DELETED(200, "피드가 삭제되었습니다."),
+    COMMENT_CREATED(201, "댓글이 등록되었습니다."),
+    COMMENT_UPDATED(200, "댓글이 수정되었습니다."),
+    COMMENT_DELETED(200, "댓글이 삭제되었습니다.");
 
     private final int code;
     private final String message;

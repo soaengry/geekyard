@@ -28,6 +28,9 @@ const Header: FC = () => {
           <Link to="/" className="app-logo text-xl font-bold text-primary tracking-tight">
             GeekYard
           </Link>
+          <Link to="/" className="nav-link text-content hover:text-primary font-medium transition-colors text-sm">
+            피드
+          </Link>
           <Link to="/anime" className="nav-link text-content hover:text-primary font-medium transition-colors text-sm">
             애니
           </Link>
