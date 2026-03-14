@@ -3,12 +3,15 @@ import { Link, useParams } from 'react-router-dom'
 import { getAnimeDetail } from '../api/animeApi'
 import type { AnimeDetail } from '../types'
 import ReviewTab from '../components/ReviewTab'
+import FeedForm from '../../feed/components/FeedForm'
+import FeedList from '../../feed/components/FeedList'
 
 const AnimeDetailPage: FC = () => {
   const { id } = useParams<{ id: string }>()
   const [anime, setAnime] = useState<AnimeDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [feedRefreshKey, setFeedRefreshKey] = useState(0)
 
   useEffect(() => {
     if (!id) return
@@ -173,6 +176,19 @@ const AnimeDetailPage: FC = () => {
       <section className="review-section mb-8">
         <h2 className="section-title text-lg font-bold text-content mb-3">리뷰</h2>
         <ReviewTab animeId={anime.id} />
+      </section>
+
+      {/* Feeds */}
+      <section className="feed-section mb-8">
+        <h2 className="section-title text-lg font-bold text-content mb-3">피드</h2>
+        <div className="space-y-4">
+          <FeedForm
+            preSelectedAnimeId={anime.id}
+            preSelectedAnimeName={anime.name}
+            onCreated={() => setFeedRefreshKey((k) => k + 1)}
+          />
+          <FeedList animeId={anime.id} refreshKey={feedRefreshKey} />
+        </div>
       </section>
     </div>
   )

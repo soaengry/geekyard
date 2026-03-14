@@ -68,6 +68,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users/{username}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/anime/*/reviews/mine").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/anime/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/feeds/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
