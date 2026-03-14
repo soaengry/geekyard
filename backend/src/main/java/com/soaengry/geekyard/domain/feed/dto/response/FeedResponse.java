@@ -27,21 +27,27 @@ public record FeedResponse(
     public static FeedResponse from(Feed feed, boolean liked, boolean bookmarked) {
         User user = feed.getUser();
         Anime anime = feed.getAnime();
+        Long animeId = null;
+        String animeName = null;
         String animeImg = null;
-        if (anime.getMetadata() != null && anime.getMetadata().getImages() != null) {
-            animeImg = anime.getMetadata().getImages().stream()
-                    .filter(img -> "home_default".equals(img.getOptionName()))
-                    .findFirst()
-                    .map(img -> img.getImgUrl())
-                    .orElse(null);
+        if (anime != null) {
+            animeId = anime.getId();
+            animeName = anime.getName();
+            if (anime.getMetadata() != null && anime.getMetadata().getImages() != null) {
+                animeImg = anime.getMetadata().getImages().stream()
+                        .filter(img -> "home_default".equals(img.getOptionName()))
+                        .findFirst()
+                        .map(img -> img.getImgUrl())
+                        .orElse(null);
+            }
         }
         return new FeedResponse(
                 feed.getId(),
                 user.getId(),
                 user.getNickname(),
                 user.getProfileImage(),
-                anime.getId(),
-                anime.getName(),
+                animeId,
+                animeName,
                 animeImg,
                 feed.getContent(),
                 feed.getImageUrls(),
