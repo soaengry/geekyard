@@ -1,6 +1,12 @@
 import { FC, useState } from "react";
+import { toast } from "react-toastify";
+import { isAxiosError } from "axios";
+import { useAuthStore } from "../../auth/store/useAuthStore";
+import { toggleReviewLike, toggleReviewBookmark } from "../api/animeApi";
 import type { ReviewResponse } from "../types";
 import StarRating from "./StarRating";
+import LikeButton from "../../feed/components/LikeButton";
+import BookmarkButton from "../../feed/components/BookmarkButton";
 
 interface ReviewCardProps {
   review: ReviewResponse;
@@ -15,7 +21,11 @@ const ReviewCard: FC<ReviewCardProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [liked, setLiked] = useState(review.liked);
+  const [likeCount, setLikeCount] = useState(review.likeCount);
+  const [bookmarked, setBookmarked] = useState(review.bookmarked);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -24,6 +34,37 @@ const ReviewCard: FC<ReviewCardProps> = ({
       month: "long",
       day: "numeric",
     });
+  };
+
+  const handleLike = async () => {
+    if (!isAuthenticated) {
+      toast.info("로그인이 필요합니다.");
+      return;
+    }
+    try {
+      const result = await toggleReviewLike(review.animeId, review.id);
+      setLiked(result.liked);
+      setLikeCount(result.likeCount);
+    } catch (err) {
+      if (isAxiosError(err)) {
+        toast.error("좋아요 처리에 실패했습니다.");
+      }
+    }
+  };
+
+  const handleBookmark = async () => {
+    if (!isAuthenticated) {
+      toast.info("로그인이 필요합니다.");
+      return;
+    }
+    try {
+      const result = await toggleReviewBookmark(review.animeId, review.id);
+      setBookmarked(result.bookmarked);
+    } catch (err) {
+      if (isAxiosError(err)) {
+        toast.error("북마크 처리에 실패했습니다.");
+      }
+    }
   };
 
   return (
@@ -75,9 +116,15 @@ const ReviewCard: FC<ReviewCardProps> = ({
         {review.content}
       </p>
 
-      <p className="review-date text-xs text-subtle mt-2">
-        {formatDate(review.createdAt)}
-      </p>
+      <div className="review-footer flex items-center justify-between mt-3">
+        <div className="review-interactions flex items-center gap-4">
+          <LikeButton liked={liked} count={likeCount} onToggle={handleLike} />
+          <BookmarkButton bookmarked={bookmarked} onToggle={handleBookmark} />
+        </div>
+        <p className="review-date text-xs text-subtle">
+          {formatDate(review.createdAt)}
+        </p>
+      </div>
 
       {/* Delete confirmation dialog */}
       {showConfirm && (
