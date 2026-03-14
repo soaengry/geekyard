@@ -10,13 +10,12 @@ import com.soaengry.geekyard.domain.user.dto.response.UserProfileResponse;
 import com.soaengry.geekyard.domain.user.entity.User;
 import com.soaengry.geekyard.domain.user.service.UserActivityService;
 import com.soaengry.geekyard.domain.user.service.UserService;
-import com.soaengry.geekyard.global.common.ApiResponse;
+import com.soaengry.geekyard.global.common.ApiSuccessCode;
 import com.soaengry.geekyard.global.common.SuccessCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import com.soaengry.geekyard.global.util.PageRequestFactory;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,94 +31,106 @@ public class UserController {
     private final UserActivityService userActivityService;
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<MyProfileResponse>> getMyProfile(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.OK, userService.getMyProfile(user)));
+    @ApiSuccessCode(SuccessCode.OK)
+    public MyProfileResponse getMyProfile(@AuthenticationPrincipal User user) {
+        return userService.getMyProfile(user);
     }
 
     @PatchMapping("/me")
-    public ResponseEntity<ApiResponse<MyProfileResponse>> updateProfile(
+    @ApiSuccessCode(SuccessCode.PROFILE_UPDATED)
+    public MyProfileResponse updateProfile(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody UpdateProfileRequest request
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.PROFILE_UPDATED, userService.updateProfile(user, request)));
+        return userService.updateProfile(user, request);
     }
 
     @PatchMapping("/me/profile-image")
-    public ResponseEntity<ApiResponse<MyProfileResponse>> updateProfileImage(
+    @ApiSuccessCode(SuccessCode.PROFILE_UPDATED)
+    public MyProfileResponse updateProfileImage(
             @AuthenticationPrincipal User user,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.PROFILE_UPDATED, userService.updateProfileImage(user, file)));
+        return userService.updateProfileImage(user, file);
     }
 
     @DeleteMapping("/me")
-    public ResponseEntity<ApiResponse<Void>> deleteAccount(@AuthenticationPrincipal User user) {
+    @ApiSuccessCode(SuccessCode.ACCOUNT_DELETED)
+    public Void deleteAccount(@AuthenticationPrincipal User user) {
         userService.deleteAccount(user);
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.ACCOUNT_DELETED));
+        return null;
     }
 
     @PostMapping("/recover")
-    public ResponseEntity<ApiResponse<Void>> recoverAccount(@Valid @RequestBody RecoverAccountRequest request) {
+    @ApiSuccessCode(SuccessCode.ACCOUNT_RECOVERED)
+    public Void recoverAccount(@Valid @RequestBody RecoverAccountRequest request) {
         userService.recoverAccount(request);
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.ACCOUNT_RECOVERED));
+        return null;
     }
 
     @GetMapping("/{username}")
-    public ResponseEntity<ApiResponse<UserProfileResponse>> getUserProfile(@PathVariable String username) {
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.OK, userService.getUserProfile(username)));
+    @ApiSuccessCode(SuccessCode.OK)
+    public UserProfileResponse getUserProfile(@PathVariable String username) {
+        return userService.getUserProfile(username);
     }
 
     @GetMapping("/me/feeds")
-    public ResponseEntity<ApiResponse<Page<FeedResponse>>> getMyFeeds(
+    @ApiSuccessCode(SuccessCode.OK)
+    public Page<FeedResponse> getMyFeeds(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.OK, userActivityService.getMyFeeds(user, PageRequest.of(page, size))));
+        return userActivityService.getMyFeeds(user, PageRequestFactory.of(page, size));
     }
 
     @GetMapping("/me/liked-feeds")
-    public ResponseEntity<ApiResponse<Page<FeedResponse>>> getLikedFeeds(
+    @ApiSuccessCode(SuccessCode.OK)
+    public Page<FeedResponse> getLikedFeeds(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.OK, userActivityService.getLikedFeeds(user, PageRequest.of(page, size))));
+        return userActivityService.getLikedFeeds(user, PageRequestFactory.of(page, size));
     }
 
     @GetMapping("/me/bookmarked-feeds")
-    public ResponseEntity<ApiResponse<Page<FeedResponse>>> getBookmarkedFeeds(
+    @ApiSuccessCode(SuccessCode.OK)
+    public Page<FeedResponse> getBookmarkedFeeds(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.OK, userActivityService.getBookmarkedFeeds(user, PageRequest.of(page, size))));
+        return userActivityService.getBookmarkedFeeds(user, PageRequestFactory.of(page, size));
     }
 
     @GetMapping("/me/comments")
-    public ResponseEntity<ApiResponse<Page<CommentResponse>>> getMyComments(
+    @ApiSuccessCode(SuccessCode.OK)
+    public Page<CommentResponse> getMyComments(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.OK, userActivityService.getMyComments(user, PageRequest.of(page, size))));
+        return userActivityService.getMyComments(user, PageRequestFactory.of(page, size));
     }
 
     @GetMapping("/me/liked-reviews")
-    public ResponseEntity<ApiResponse<Page<ReviewResponse>>> getLikedReviews(
+    @ApiSuccessCode(SuccessCode.OK)
+    public Page<ReviewResponse> getLikedReviews(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.OK, userActivityService.getLikedReviews(user, PageRequest.of(page, size))));
+        return userActivityService.getLikedReviews(user, PageRequestFactory.of(page, size));
     }
 
     @GetMapping("/me/bookmarked-reviews")
-    public ResponseEntity<ApiResponse<Page<ReviewResponse>>> getBookmarkedReviews(
+    @ApiSuccessCode(SuccessCode.OK)
+    public Page<ReviewResponse> getBookmarkedReviews(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.OK, userActivityService.getBookmarkedReviews(user, PageRequest.of(page, size))));
+        return userActivityService.getBookmarkedReviews(user, PageRequestFactory.of(page, size));
     }
 }
