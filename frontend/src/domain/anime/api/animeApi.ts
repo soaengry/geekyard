@@ -98,3 +98,23 @@ export const updateReview = async (
 export const deleteReview = async (animeId: number, reviewId: number): Promise<void> => {
   await axiosInstance.delete(ANIME_ENDPOINTS.REVIEW(animeId, reviewId))
 }
+
+export const toggleReviewLike = async (
+  animeId: number,
+  reviewId: number,
+): Promise<{ liked: boolean; likeCount: number }> => {
+  const response = await axiosInstance.post<{
+    data: { liked: boolean; likeCount: number }
+  }>(ANIME_ENDPOINTS.REVIEW_LIKE(animeId, reviewId))
+  return response.data.data
+}
+
+export const toggleReviewBookmark = async (
+  animeId: number,
+  reviewId: number,
+): Promise<{ bookmarked: boolean }> => {
+  const response = await axiosInstance.post<{ data: { bookmarked: boolean } }>(
+    ANIME_ENDPOINTS.REVIEW_BOOKMARK(animeId, reviewId),
+  )
+  return response.data.data
+}
