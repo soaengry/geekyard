@@ -2,6 +2,7 @@ import { FC, useEffect } from 'react'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { useAuthStore } from '../domain/auth/store/useAuthStore'
+import ErrorBoundary from '../global/components/ErrorBoundary'
 import AppRouter from './routes/AppRouter'
 
 const App: FC = () => {
@@ -22,7 +23,9 @@ const App: FC = () => {
 
   return (
     <>
-      <AppRouter />
+      <ErrorBoundary>
+        <AppRouter />
+      </ErrorBoundary>
       <ToastContainer
         position="top-center"
         autoClose={3000}
