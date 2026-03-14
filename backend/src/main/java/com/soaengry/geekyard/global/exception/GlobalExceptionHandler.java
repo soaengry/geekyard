@@ -1,6 +1,7 @@
 package com.soaengry.geekyard.global.exception;
 
 import com.soaengry.geekyard.domain.anime.exception.AnimeException;
+import com.soaengry.geekyard.domain.feed.exception.FeedException;
 import com.soaengry.geekyard.domain.user.exception.UserException;
 import com.soaengry.geekyard.global.common.ApiResponse;
 import com.soaengry.geekyard.global.common.ErrorCode;
@@ -21,6 +22,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AnimeException.class)
     public ResponseEntity<ApiResponse<?>> handleAnimeException(AnimeException e) {
         log.warn("Anime Exception: {} - {}", e.getErrorCode().name(), e.getMessage());
+        HttpStatus status = determineHttpStatusFromCode(e.getErrorCode().name());
+        ErrorCode errorCode = ErrorCode.from(e.getErrorCode().name(), e.getMessage(), status);
+        return ResponseEntity.status(status).body(ApiResponse.error(errorCode));
+    }
+
+    @ExceptionHandler(FeedException.class)
+    public ResponseEntity<ApiResponse<?>> handleFeedException(FeedException e) {
+        log.warn("Feed Exception: {} - {}", e.getErrorCode().name(), e.getMessage());
         HttpStatus status = determineHttpStatusFromCode(e.getErrorCode().name());
         ErrorCode errorCode = ErrorCode.from(e.getErrorCode().name(), e.getMessage(), status);
         return ResponseEntity.status(status).body(ApiResponse.error(errorCode));
