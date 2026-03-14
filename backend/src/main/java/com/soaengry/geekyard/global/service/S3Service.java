@@ -35,6 +35,10 @@ public class S3Service {
     private String region;
 
     public String upload(MultipartFile file, Long userId) throws IOException {
+        return upload(file, userId, "profiles");
+    }
+
+    public String upload(MultipartFile file, Long userId, String directory) throws IOException {
         if (file.getSize() > MAX_FILE_SIZE) {
             throw new UserException(UserErrorCode.FILE_TOO_LARGE);
         }
@@ -43,7 +47,7 @@ public class S3Service {
         }
 
         String ext = extractExtension(file.getOriginalFilename());
-        String key = "profiles/" + userId + "/" + UUID.randomUUID() + "." + ext;
+        String key = directory + "/" + userId + "/" + UUID.randomUUID() + "." + ext;
 
         s3Client.putObject(
                 PutObjectRequest.builder()
