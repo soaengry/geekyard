@@ -3,8 +3,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod/v4'
 import { toast } from 'react-toastify'
-import { isAxiosError } from 'axios'
 import { getAnimeList } from '../../anime/api/animeApi'
+import { extractApiError } from '../../../global/utils/extractApiError'
 import type { AnimeListItem } from '../../anime/types'
 import { createFeed } from '../api/feedApi'
 
@@ -17,7 +17,7 @@ interface FeedFormProps {
 const MAX_IMAGES = 4
 
 const feedSchema = z.object({
-  animeId: z.number().min(1, '애니메이션을 선택해주세요.'),
+  animeId: z.number().min(1, '애니메이션을 선택해주세요.').optional(),
   content: z
     .string()
     .min(1, '내용을 입력해주세요.')
@@ -51,7 +51,7 @@ const FeedForm: FC<FeedFormProps> = ({
   } = useForm<FeedFormValues>({
     resolver: zodResolver(feedSchema),
     defaultValues: {
-      animeId: isPreSelected ? preSelectedAnimeId : 0,
+      animeId: isPreSelected ? preSelectedAnimeId : undefined,
       content: '',
     },
   })
@@ -107,17 +107,14 @@ const FeedForm: FC<FeedFormProps> = ({
     }
 
     setImageFiles((prev) => [...prev, ...toAdd])
-    toAdd.forEach((file) => {
-      const reader = new FileReader()
-      reader.onload = () =>
-        setImagePreviews((prev) => [...prev, reader.result as string])
-      reader.readAsDataURL(file)
-    })
+    const newPreviews = toAdd.map((file) => URL.createObjectURL(file))
+    setImagePreviews((prev) => [...prev, ...newPreviews])
 
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const removeImage = (index: number) => {
+    URL.revokeObjectURL(imagePreviews[index])
     setImageFiles((prev) => prev.filter((_, i) => i !== index))
     setImagePreviews((prev) => prev.filter((_, i) => i !== index))
   }
@@ -126,17 +123,14 @@ const FeedForm: FC<FeedFormProps> = ({
     try {
       await createFeed(data, imageFiles.length > 0 ? imageFiles : undefined)
       toast.success('피드가 등록되었습니다.')
-      reset({ animeId: isPreSelected ? preSelectedAnimeId : 0, content: '' })
+      reset({ animeId: isPreSelected ? preSelectedAnimeId : undefined, content: '' })
       if (!isPreSelected) setSelectedAnime(null)
+      imagePreviews.forEach((url) => URL.revokeObjectURL(url))
       setImageFiles([])
       setImagePreviews([])
       onCreated()
     } catch (err) {
-      if (isAxiosError(err)) {
-        const msg = (err.response?.data as { status?: { message?: string } })?.status
-          ?.message
-        toast.error(msg ?? '피드 등록에 실패했습니다.')
-      }
+      toast.error(extractApiError(err, '피드 등록에 실패했습니다.'))
     }
   }
 
@@ -170,7 +164,7 @@ const FeedForm: FC<FeedFormProps> = ({
                 type="button"
                 onClick={() => {
                   setSelectedAnime(null)
-                  setValue('animeId', 0)
+                  setValue('animeId', undefined)
                 }}
                 className="text-subtle hover:text-content text-sm px-1"
               >

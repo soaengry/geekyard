@@ -21,6 +21,9 @@ public interface FeedBookmarkRepository extends JpaRepository<FeedBookmark, Long
     @Query("SELECT fb.feed.id FROM FeedBookmark fb WHERE fb.user = :user AND fb.feed.id IN :feedIds")
     List<Long> findBookmarkedFeedIdsByUserAndFeedIds(@Param("user") User user, @Param("feedIds") List<Long> feedIds);
 
-    @Query("SELECT fb.feed FROM FeedBookmark fb JOIN FETCH fb.feed.user JOIN FETCH fb.feed.anime WHERE fb.user = :user ORDER BY fb.createdAt DESC")
+    @Query(value = "SELECT fb.feed FROM FeedBookmark fb JOIN FETCH fb.feed.user LEFT JOIN FETCH fb.feed.anime WHERE fb.user = :user ORDER BY fb.createdAt DESC",
+            countQuery = "SELECT COUNT(fb) FROM FeedBookmark fb WHERE fb.user = :user")
     Page<Feed> findBookmarkedFeedsByUser(@Param("user") User user, Pageable pageable);
+
+    void deleteByFeed(Feed feed);
 }

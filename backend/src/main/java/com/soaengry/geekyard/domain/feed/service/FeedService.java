@@ -6,20 +6,22 @@ import com.soaengry.geekyard.domain.anime.exception.AnimeException;
 import com.soaengry.geekyard.domain.anime.repository.AnimeRepository;
 import com.soaengry.geekyard.domain.feed.dto.request.CreateFeedRequest;
 import com.soaengry.geekyard.domain.feed.dto.request.UpdateFeedRequest;
-import com.soaengry.geekyard.domain.feed.dto.response.BookmarkResponse;
 import com.soaengry.geekyard.domain.feed.dto.response.FeedResponse;
-import com.soaengry.geekyard.domain.feed.dto.response.LikeResponse;
 import com.soaengry.geekyard.domain.feed.entity.Feed;
 import com.soaengry.geekyard.domain.feed.entity.FeedBookmark;
 import com.soaengry.geekyard.domain.feed.entity.FeedLike;
 import com.soaengry.geekyard.domain.feed.exception.FeedErrorCode;
 import com.soaengry.geekyard.domain.feed.exception.FeedException;
 import com.soaengry.geekyard.domain.feed.repository.FeedBookmarkRepository;
+import com.soaengry.geekyard.domain.feed.repository.FeedCommentRepository;
 import com.soaengry.geekyard.domain.feed.repository.FeedLikeRepository;
 import com.soaengry.geekyard.domain.feed.repository.FeedRepository;
 import com.soaengry.geekyard.domain.user.entity.User;
+import com.soaengry.geekyard.global.common.dto.BookmarkResponse;
+import com.soaengry.geekyard.global.common.dto.LikeResponse;
 import com.soaengry.geekyard.global.service.S3Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,7 @@ public class FeedService {
     private final FeedRepository feedRepository;
     private final FeedLikeRepository feedLikeRepository;
     private final FeedBookmarkRepository feedBookmarkRepository;
+    private final FeedCommentRepository feedCommentRepository;
     private final AnimeRepository animeRepository;
     private final S3Service s3Service;
 
@@ -71,8 +74,11 @@ public class FeedService {
 
     @Transactional
     public FeedResponse createFeed(User user, CreateFeedRequest request, List<MultipartFile> files) throws IOException {
-        Anime anime = animeRepository.findById(request.animeId())
-                .orElseThrow(() -> new AnimeException(AnimeErrorCode.ANIME_NOT_FOUND));
+        Anime anime = null;
+        if (request.animeId() != null) {
+            anime = animeRepository.findById(request.animeId())
+                    .orElseThrow(() -> new AnimeException(AnimeErrorCode.ANIME_NOT_FOUND));
+        }
 
         List<String> imageUrls = uploadImages(files, user.getId());
 
@@ -88,7 +94,6 @@ public class FeedService {
 
         List<String> imageUrls = feed.getImageUrls();
         if (files != null && !files.isEmpty()) {
-            // 기존 이미지 삭제
             for (String url : feed.getImageUrls()) {
                 s3Service.delete(url);
             }
@@ -108,6 +113,9 @@ public class FeedService {
         for (String url : feed.getImageUrls()) {
             s3Service.delete(url);
         }
+        feedLikeRepository.deleteByFeed(feed);
+        feedBookmarkRepository.deleteByFeed(feed);
+        feedCommentRepository.deleteByFeed(feed);
         feedRepository.delete(feed);
     }
 
@@ -117,13 +125,17 @@ public class FeedService {
         return feedLikeRepository.findByFeedAndUser(feed, user)
                 .map(like -> {
                     feedLikeRepository.delete(like);
-                    feed.decrementLikeCount();
-                    return new LikeResponse(false, feed.getLikeCount());
+                    feedRepository.decrementLikeCount(feed.getId());
+                    return new LikeResponse(false, feed.getLikeCount() - 1);
                 })
                 .orElseGet(() -> {
-                    feedLikeRepository.save(FeedLike.create(feed, user));
-                    feed.incrementLikeCount();
-                    return new LikeResponse(true, feed.getLikeCount());
+                    try {
+                        feedLikeRepository.save(FeedLike.create(feed, user));
+                    } catch (DataIntegrityViolationException e) {
+                        return new LikeResponse(true, feed.getLikeCount());
+                    }
+                    feedRepository.incrementLikeCount(feed.getId());
+                    return new LikeResponse(true, feed.getLikeCount() + 1);
                 });
     }
 
@@ -136,7 +148,11 @@ public class FeedService {
                     return new BookmarkResponse(false);
                 })
                 .orElseGet(() -> {
-                    feedBookmarkRepository.save(FeedBookmark.create(feed, user));
+                    try {
+                        feedBookmarkRepository.save(FeedBookmark.create(feed, user));
+                    } catch (DataIntegrityViolationException e) {
+                        return new BookmarkResponse(true);
+                    }
                     return new BookmarkResponse(true);
                 });
     }
