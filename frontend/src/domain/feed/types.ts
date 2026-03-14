@@ -3,8 +3,8 @@ export interface FeedResponse {
   userId: number
   nickname: string
   profileImage: string | null
-  animeId: number
-  animeName: string
+  animeId: number | null
+  animeName: string | null
   animeImg: string | null
   content: string
   imageUrls: string[]
@@ -17,7 +17,7 @@ export interface FeedResponse {
 }
 
 export interface CreateFeedRequest {
-  animeId: number
+  animeId?: number
   content: string
 }
 
