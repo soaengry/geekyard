@@ -9,12 +9,10 @@ import com.soaengry.geekyard.domain.user.exception.UserErrorCode;
 import com.soaengry.geekyard.domain.user.exception.UserException;
 import com.soaengry.geekyard.domain.user.service.EmailVerificationService;
 import com.soaengry.geekyard.domain.user.service.UserService;
-import com.soaengry.geekyard.global.common.ApiResponse;
+import com.soaengry.geekyard.global.common.ApiSuccessCode;
 import com.soaengry.geekyard.global.common.SuccessCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,55 +25,58 @@ public class AuthController {
     private final EmailVerificationService emailVerificationService;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<TokenResponse>> signup(@Valid @RequestBody SignupRequest request) {
-        TokenResponse tokens = userService.signup(request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ok(SuccessCode.SIGNUP, tokens));
+    @ApiSuccessCode(SuccessCode.SIGNUP)
+    public TokenResponse signup(@Valid @RequestBody SignupRequest request) {
+        return userService.signup(request);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<TokenResponse>> login(@Valid @RequestBody LoginRequest request) {
-        TokenResponse tokens = userService.login(request);
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.LOGIN, tokens));
+    @ApiSuccessCode(SuccessCode.LOGIN)
+    public TokenResponse login(@Valid @RequestBody LoginRequest request) {
+        return userService.login(request);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(
+    @ApiSuccessCode(SuccessCode.LOGOUT)
+    public Void logout(
             @AuthenticationPrincipal User user,
             @RequestHeader("X-Refresh-Token") String refreshToken
     ) {
         userService.logout(user, refreshToken);
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.LOGOUT));
+        return null;
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<TokenResponse>> refresh(
+    @ApiSuccessCode(SuccessCode.TOKEN_REFRESHED)
+    public TokenResponse refresh(
             @RequestHeader("X-Refresh-Token") String refreshToken
     ) {
-        TokenResponse tokens = userService.refresh(refreshToken);
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.TOKEN_REFRESHED, tokens));
+        return userService.refresh(refreshToken);
     }
 
     @PatchMapping("/password")
-    public ResponseEntity<ApiResponse<Void>> changePassword(
+    @ApiSuccessCode(SuccessCode.PASSWORD_CHANGED)
+    public Void changePassword(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody ChangePasswordRequest request
     ) {
         if (user == null) throw new UserException(UserErrorCode.UNAUTHORIZED_ACCESS);
         userService.changePassword(user, request);
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.PASSWORD_CHANGED));
+        return null;
     }
 
     @PostMapping("/email/verify")
-    public ResponseEntity<ApiResponse<Void>> sendVerificationEmail(@AuthenticationPrincipal User user) {
+    @ApiSuccessCode(SuccessCode.VERIFICATION_EMAIL_SENT)
+    public Void sendVerificationEmail(@AuthenticationPrincipal User user) {
         if (user == null) throw new UserException(UserErrorCode.UNAUTHORIZED_ACCESS);
         emailVerificationService.sendVerificationEmail(user);
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.VERIFICATION_EMAIL_SENT));
+        return null;
     }
 
     @GetMapping("/verify")
-    public ResponseEntity<ApiResponse<Void>> verifyEmail(@RequestParam String token) {
+    @ApiSuccessCode(SuccessCode.EMAIL_VERIFIED)
+    public Void verifyEmail(@RequestParam String token) {
         emailVerificationService.verifyEmail(token);
-        return ResponseEntity.ok(ApiResponse.ok(SuccessCode.EMAIL_VERIFIED));
+        return null;
     }
 }
