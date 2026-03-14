@@ -18,16 +18,15 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
     @Query(value = """
             SELECT a.id FROM anime a
             JOIN anime_metadata m ON a.id = m.anime_id
-            WHERE (:q IS NULL OR a.name ILIKE '%' || :q || '%')
+            WHERE (:q IS NULL OR REPLACE(a.name, ' ', '') ILIKE '%' || REPLACE(:q, ' ', '') || '%')
               AND (:genresJson IS NULL OR m.genres @> CAST(:genresJson AS jsonb))
               AND (:tagsJson IS NULL OR m.tags @> CAST(:tagsJson AS jsonb))
               AND (:hasYears = false OR a.air_year_quarter IN ( :yearValues ))
-            ORDER BY a.id
             """,
             countQuery = """
             SELECT COUNT(*) FROM anime a
             JOIN anime_metadata m ON a.id = m.anime_id
-            WHERE (:q IS NULL OR a.name ILIKE '%' || :q || '%')
+            WHERE (:q IS NULL OR REPLACE(a.name, ' ', '') ILIKE '%' || REPLACE(:q, ' ', '') || '%')
               AND (:genresJson IS NULL OR m.genres @> CAST(:genresJson AS jsonb))
               AND (:tagsJson IS NULL OR m.tags @> CAST(:tagsJson AS jsonb))
               AND (:hasYears = false OR a.air_year_quarter IN ( :yearValues ))
@@ -41,7 +40,7 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
             @Param("yearValues") List<String> yearValues,
             Pageable pageable);
 
-    @Query("SELECT a FROM Anime a LEFT JOIN FETCH a.metadata WHERE a.id IN :ids ORDER BY a.id")
+    @Query("SELECT a FROM Anime a LEFT JOIN FETCH a.metadata WHERE a.id IN :ids")
     List<Anime> findAllByIdWithMetadata(@Param("ids") List<Long> ids);
 
     @Query(value = "SELECT DISTINCT a.air_year_quarter FROM anime a WHERE a.air_year_quarter IS NOT NULL ORDER BY a.air_year_quarter DESC",
