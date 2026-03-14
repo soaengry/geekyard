@@ -1,13 +1,12 @@
 package com.soaengry.geekyard.domain.anime.controller;
 
 import com.soaengry.geekyard.domain.anime.service.ReviewInteractionService;
-import com.soaengry.geekyard.domain.feed.dto.response.BookmarkResponse;
-import com.soaengry.geekyard.domain.feed.dto.response.LikeResponse;
+import com.soaengry.geekyard.global.common.dto.BookmarkResponse;
+import com.soaengry.geekyard.global.common.dto.LikeResponse;
 import com.soaengry.geekyard.domain.user.entity.User;
-import com.soaengry.geekyard.global.common.ApiResponse;
+import com.soaengry.geekyard.global.common.ApiSuccessCode;
 import com.soaengry.geekyard.global.common.SuccessCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,26 +18,22 @@ public class ReviewInteractionController {
     private final ReviewInteractionService reviewInteractionService;
 
     @PostMapping("/like")
-    public ResponseEntity<ApiResponse<LikeResponse>> toggleLike(
+    @ApiSuccessCode(SuccessCode.OK)
+    public LikeResponse toggleLike(
             @PathVariable Long animeId,
             @PathVariable Long reviewId,
             @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(
-                SuccessCode.OK,
-                reviewInteractionService.toggleLike(animeId, reviewId, user)
-        ));
+        return reviewInteractionService.toggleLike(animeId, reviewId, user);
     }
 
     @PostMapping("/bookmark")
-    public ResponseEntity<ApiResponse<BookmarkResponse>> toggleBookmark(
+    @ApiSuccessCode(SuccessCode.OK)
+    public BookmarkResponse toggleBookmark(
             @PathVariable Long animeId,
             @PathVariable Long reviewId,
             @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.ok(ApiResponse.ok(
-                SuccessCode.OK,
-                reviewInteractionService.toggleBookmark(animeId, reviewId, user)
-        ));
+        return reviewInteractionService.toggleBookmark(animeId, reviewId, user);
     }
 }
