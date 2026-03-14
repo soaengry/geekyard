@@ -73,4 +73,12 @@ public class AnimeReview extends BaseTimeEntity {
         if (score != null) this.score = score;
         if (content != null) this.content = content;
     }
+
+    public void incrementLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decrementLikeCount() {
+        if (this.likeCount > 0) this.likeCount--;
+    }
 }
