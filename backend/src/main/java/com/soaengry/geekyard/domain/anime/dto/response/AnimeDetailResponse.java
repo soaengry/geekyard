@@ -23,7 +23,8 @@ public record AnimeDetailResponse(
         String medium,
         @JsonProperty("isAdult") Boolean isAdult,
         String airYearQuarter,
-        Long seriesId
+        Long seriesId,
+        Boolean watched
 ) {
     public record AnimeImageItem(String optionName, String imgUrl, String cropRatio) {
         public static AnimeImageItem from(AnimeMetadata.ImageData image) {
@@ -56,7 +57,7 @@ public record AnimeDetailResponse(
         }
     }
 
-    public static AnimeDetailResponse from(Anime anime) {
+    public static AnimeDetailResponse from(Anime anime, Boolean watched) {
         AnimeMetadata metadata = anime.getMetadata();
 
         List<AnimeImageItem> images = (metadata == null || metadata.getImages() == null) ? List.of() :
@@ -88,7 +89,8 @@ public record AnimeDetailResponse(
                 anime.getMedium(),
                 anime.getIsAdult(),
                 anime.getAirYearQuarter(),
-                anime.getSeriesId()
+                anime.getSeriesId(),
+                watched
         );
     }
 

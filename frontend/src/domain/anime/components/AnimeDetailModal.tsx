@@ -1,5 +1,8 @@
 import { FC, useEffect, useMemo, useState } from "react";
-import { getAnimeDetail } from "../api/animeApi";
+import { toast } from "react-toastify";
+import { useScrollLock } from "../../../global/hooks/useScrollLock";
+import { useAuthStore } from "../../auth/store/useAuthStore";
+import { getAnimeDetail, toggleAnimeWatch } from "../api/animeApi";
 import type { AnimeDetail } from "../types";
 import ReviewTab from "./ReviewTab";
 import FeedForm from "../../feed/components/FeedForm";
@@ -14,17 +17,13 @@ const TABS = ["정보", "리뷰", "피드", "톡톡"] as const;
 type Tab = (typeof TABS)[number];
 
 const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("정보");
   const [feedRefreshKey, setFeedRefreshKey] = useState(0);
-
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, []);
+  const [watched, setWatched] = useState<boolean | null>(null);
+  useScrollLock(true);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -38,7 +37,10 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
     setLoading(true);
     setAnime(null);
     getAnimeDetail(id)
-      .then(setAnime)
+      .then((data) => {
+        setAnime(data);
+        setWatched(data.watched);
+      })
       .catch(() => setAnime(null))
       .finally(() => setLoading(false));
   }, [id]);
@@ -53,6 +55,20 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
   );
   const heroBannerUrl = customImage?.imgUrl ?? anime?.img;
   const posterUrl = defaultImage?.imgUrl ?? anime?.img;
+
+  const handleToggleWatch = async () => {
+    if (!anime) return;
+    try {
+      const result = await toggleAnimeWatch(anime.id);
+      setWatched(result.watched);
+    } catch {
+      toast.error("봤어요 처리에 실패했습니다.");
+    }
+  };
+
+  const handleWatchStatusChange = () => {
+    setWatched(true);
+  };
 
   return (
     <div
@@ -124,11 +140,25 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
                 <h2 className="hero-title text-white text-xl font-bold drop-shadow">
                   {anime.name}
                 </h2>
-                {anime.avgRating != null && (
-                  <p className="hero-rating text-yellow-400 text-sm mt-1">
-                    ★ {anime.avgRating.toFixed(1)}
-                  </p>
-                )}
+                <div className="hero-meta flex items-center gap-3 mt-1">
+                  {anime.avgRating != null && (
+                    <p className="hero-rating text-yellow-400 text-sm">
+                      ★ {anime.avgRating.toFixed(1)}
+                    </p>
+                  )}
+                  {isAuthenticated && (
+                    <button
+                      onClick={handleToggleWatch}
+                      className={`watch-btn text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${
+                        watched
+                          ? "bg-primary text-white"
+                          : "bg-white/20 text-white hover:bg-white/30"
+                      }`}
+                    >
+                      {watched ? "봤어요 ✓" : "봤어요"}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -264,14 +294,17 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
                   )}
                 </div>
               ) : activeTab === "리뷰" ? (
-                <ReviewTab animeId={anime.id} />
+                <ReviewTab animeId={anime.id} onWatchStatusChange={handleWatchStatusChange} />
               ) : activeTab === "피드" ? (
                 <div className="tab-feed p-5 space-y-4">
-                  <FeedForm
-                    preSelectedAnimeId={anime.id}
-                    preSelectedAnimeName={anime.name}
-                    onCreated={() => setFeedRefreshKey((k) => k + 1)}
-                  />
+                  {isAuthenticated && (
+                    <FeedForm
+                      preSelectedAnimeId={anime.id}
+                      preSelectedAnimeName={anime.name}
+                      onCreated={() => setFeedRefreshKey((k) => k + 1)}
+                    />
+                  )}
+
                   <FeedList animeId={anime.id} refreshKey={feedRefreshKey} />
                 </div>
               ) : (

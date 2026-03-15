@@ -11,8 +11,9 @@ import {
   getLikedReviews,
   getBookmarkedReviews,
 } from "../../feed/api/feedApi";
+import { formatDate } from "../../../global/utils/formatDate";
 import type { FeedResponse, CommentResponse } from "../../feed/types";
-import type { ReviewResponse } from "../../anime/types";
+import type { ReviewResponse, PageResponse } from "../../anime/types";
 import FeedCard from "../../feed/components/FeedCard";
 
 const TABS = [
@@ -24,6 +25,17 @@ const TABS = [
   "북마크 리뷰",
 ] as const;
 type TabType = (typeof TABS)[number];
+
+type DataType = "feed" | "comment" | "review";
+
+const TAB_CONFIG: Record<TabType, { fetcher: (page: number) => Promise<PageResponse<FeedResponse | CommentResponse | ReviewResponse>>; type: DataType }> = {
+  "내 피드": { fetcher: getMyFeeds, type: "feed" },
+  "좋아요 피드": { fetcher: getLikedFeeds, type: "feed" },
+  "북마크 피드": { fetcher: getBookmarkedFeeds, type: "feed" },
+  "내 댓글": { fetcher: getMyComments, type: "comment" },
+  "좋아요 리뷰": { fetcher: getLikedReviews, type: "review" },
+  "북마크 리뷰": { fetcher: getBookmarkedReviews, type: "review" },
+};
 
 const MyPage: FC = () => {
   const user = useAuthStore((state) => state.user);
@@ -40,50 +52,18 @@ const MyPage: FC = () => {
     async (tab: TabType, pageNum: number, append = false) => {
       if (!append) setLoading(true);
       try {
-        switch (tab) {
-          case "내 피드": {
-            const data = await getMyFeeds(pageNum);
-            setFeeds((prev) => (append ? [...prev, ...data.content] : data.content));
-            setHasMore(data.number < data.totalPages - 1);
-            break;
-          }
-          case "좋아요 피드": {
-            const data = await getLikedFeeds(pageNum);
-            setFeeds((prev) => (append ? [...prev, ...data.content] : data.content));
-            setHasMore(data.number < data.totalPages - 1);
-            break;
-          }
-          case "북마크 피드": {
-            const data = await getBookmarkedFeeds(pageNum);
-            setFeeds((prev) => (append ? [...prev, ...data.content] : data.content));
-            setHasMore(data.number < data.totalPages - 1);
-            break;
-          }
-          case "내 댓글": {
-            const data = await getMyComments(pageNum);
-            setComments((prev) =>
-              append ? [...prev, ...data.content] : data.content,
-            );
-            setHasMore(data.number < data.totalPages - 1);
-            break;
-          }
-          case "좋아요 리뷰": {
-            const data = await getLikedReviews(pageNum);
-            setReviews((prev) =>
-              append ? [...prev, ...data.content] : data.content,
-            );
-            setHasMore(data.number < data.totalPages - 1);
-            break;
-          }
-          case "북마크 리뷰": {
-            const data = await getBookmarkedReviews(pageNum);
-            setReviews((prev) =>
-              append ? [...prev, ...data.content] : data.content,
-            );
-            setHasMore(data.number < data.totalPages - 1);
-            break;
-          }
+        const config = TAB_CONFIG[tab];
+        const data = await config.fetcher(pageNum);
+        const updateHasMore = () => setHasMore(data.number < data.totalPages - 1);
+
+        if (config.type === "feed") {
+          setFeeds((prev) => append ? [...prev, ...data.content as FeedResponse[]] : data.content as FeedResponse[]);
+        } else if (config.type === "comment") {
+          setComments((prev) => append ? [...prev, ...data.content as CommentResponse[]] : data.content as CommentResponse[]);
+        } else {
+          setReviews((prev) => append ? [...prev, ...data.content as ReviewResponse[]] : data.content as ReviewResponse[]);
         }
+        updateHasMore();
         setPage(pageNum);
       } catch {
         toast.error("데이터를 불러오는데 실패했습니다.");
@@ -108,20 +88,7 @@ const MyPage: FC = () => {
 
   if (!user) return null;
 
-  const isFeedTab =
-    activeTab === "내 피드" ||
-    activeTab === "좋아요 피드" ||
-    activeTab === "북마크 피드";
-  const isCommentTab = activeTab === "내 댓글";
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  const tabType = TAB_CONFIG[activeTab].type;
 
   return (
     <div className="mypage max-w-2xl mx-auto">
@@ -229,7 +196,7 @@ const MyPage: FC = () => {
           </div>
         ) : (
           <div className="activity-content space-y-3">
-            {isFeedTab &&
+            {tabType === "feed" &&
               (feeds.length > 0 ? (
                 feeds.map((feed) => <FeedCard key={feed.id} feed={feed} />)
               ) : (
@@ -238,7 +205,7 @@ const MyPage: FC = () => {
                 </p>
               ))}
 
-            {isCommentTab &&
+            {tabType === "comment" &&
               (comments.length > 0 ? (
                 comments.map((comment) => (
                   <div
@@ -259,8 +226,7 @@ const MyPage: FC = () => {
                 </p>
               ))}
 
-            {!isFeedTab &&
-              !isCommentTab &&
+            {tabType === "review" &&
               (reviews.length > 0 ? (
                 reviews.map((review) => (
                   <div

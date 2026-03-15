@@ -9,6 +9,15 @@ import type {
 } from '../types'
 import type { PageResponse, ReviewResponse } from '../../anime/types'
 
+const createPagedGetter = <T>(endpoint: string) => {
+  return async (page = 0, size = 10): Promise<PageResponse<T>> => {
+    const response = await axiosInstance.get<{ data: PageResponse<T> }>(
+      `${endpoint}?page=${page}&size=${size}`,
+    )
+    return response.data.data
+  }
+}
+
 export const getFeeds = async (
   page = 0,
   size = 10,
@@ -92,10 +101,21 @@ export const getComments = async (
   feedId: number,
   page = 0,
   size = 20,
+  sort = 'LATEST',
 ): Promise<PageResponse<CommentResponse>> => {
   const response = await axiosInstance.get<{
     data: PageResponse<CommentResponse>
-  }>(`${FEED_ENDPOINTS.COMMENTS(feedId)}?page=${page}&size=${size}`)
+  }>(`${FEED_ENDPOINTS.COMMENTS(feedId)}?page=${page}&size=${size}&sort=${sort}`)
+  return response.data.data
+}
+
+export const toggleCommentLike = async (
+  feedId: number,
+  commentId: number,
+): Promise<LikeToggleResponse> => {
+  const response = await axiosInstance.post<{ data: LikeToggleResponse }>(
+    FEED_ENDPOINTS.COMMENT_LIKE(feedId, commentId),
+  )
   return response.data.data
 }
 
@@ -129,62 +149,9 @@ export const deleteComment = async (
   await axiosInstance.delete(FEED_ENDPOINTS.COMMENT(feedId, commentId))
 }
 
-export const getMyFeeds = async (
-  page = 0,
-  size = 10,
-): Promise<PageResponse<FeedResponse>> => {
-  const response = await axiosInstance.get<{ data: PageResponse<FeedResponse> }>(
-    `${USER_ACTIVITY_ENDPOINTS.MY_FEEDS}?page=${page}&size=${size}`,
-  )
-  return response.data.data
-}
-
-export const getLikedFeeds = async (
-  page = 0,
-  size = 10,
-): Promise<PageResponse<FeedResponse>> => {
-  const response = await axiosInstance.get<{ data: PageResponse<FeedResponse> }>(
-    `${USER_ACTIVITY_ENDPOINTS.LIKED_FEEDS}?page=${page}&size=${size}`,
-  )
-  return response.data.data
-}
-
-export const getBookmarkedFeeds = async (
-  page = 0,
-  size = 10,
-): Promise<PageResponse<FeedResponse>> => {
-  const response = await axiosInstance.get<{ data: PageResponse<FeedResponse> }>(
-    `${USER_ACTIVITY_ENDPOINTS.BOOKMARKED_FEEDS}?page=${page}&size=${size}`,
-  )
-  return response.data.data
-}
-
-export const getMyComments = async (
-  page = 0,
-  size = 10,
-): Promise<PageResponse<CommentResponse>> => {
-  const response = await axiosInstance.get<{
-    data: PageResponse<CommentResponse>
-  }>(`${USER_ACTIVITY_ENDPOINTS.MY_COMMENTS}?page=${page}&size=${size}`)
-  return response.data.data
-}
-
-export const getLikedReviews = async (
-  page = 0,
-  size = 10,
-): Promise<PageResponse<ReviewResponse>> => {
-  const response = await axiosInstance.get<{
-    data: PageResponse<ReviewResponse>
-  }>(`${USER_ACTIVITY_ENDPOINTS.LIKED_REVIEWS}?page=${page}&size=${size}`)
-  return response.data.data
-}
-
-export const getBookmarkedReviews = async (
-  page = 0,
-  size = 10,
-): Promise<PageResponse<ReviewResponse>> => {
-  const response = await axiosInstance.get<{
-    data: PageResponse<ReviewResponse>
-  }>(`${USER_ACTIVITY_ENDPOINTS.BOOKMARKED_REVIEWS}?page=${page}&size=${size}`)
-  return response.data.data
-}
+export const getMyFeeds = createPagedGetter<FeedResponse>(USER_ACTIVITY_ENDPOINTS.MY_FEEDS)
+export const getLikedFeeds = createPagedGetter<FeedResponse>(USER_ACTIVITY_ENDPOINTS.LIKED_FEEDS)
+export const getBookmarkedFeeds = createPagedGetter<FeedResponse>(USER_ACTIVITY_ENDPOINTS.BOOKMARKED_FEEDS)
+export const getMyComments = createPagedGetter<CommentResponse>(USER_ACTIVITY_ENDPOINTS.MY_COMMENTS)
+export const getLikedReviews = createPagedGetter<ReviewResponse>(USER_ACTIVITY_ENDPOINTS.LIKED_REVIEWS)
+export const getBookmarkedReviews = createPagedGetter<ReviewResponse>(USER_ACTIVITY_ENDPOINTS.BOOKMARKED_REVIEWS)

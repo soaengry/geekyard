@@ -1,7 +1,7 @@
 package com.soaengry.geekyard.global.service;
 
-import com.soaengry.geekyard.domain.user.exception.UserErrorCode;
-import com.soaengry.geekyard.domain.user.exception.UserException;
+import com.soaengry.geekyard.global.exception.FileErrorCode;
+import com.soaengry.geekyard.global.exception.FileException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,10 +40,10 @@ public class S3Service {
 
     public String upload(MultipartFile file, Long userId, String directory) throws IOException {
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new UserException(UserErrorCode.FILE_TOO_LARGE);
+            throw new FileException(FileErrorCode.FILE_TOO_LARGE);
         }
         if (!ALLOWED_TYPES.contains(file.getContentType())) {
-            throw new UserException(UserErrorCode.INVALID_FILE_TYPE);
+            throw new FileException(FileErrorCode.INVALID_FILE_TYPE);
         }
 
         String ext = extractExtension(file.getOriginalFilename());

@@ -1,8 +1,8 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { isAxiosError } from "axios";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { toggleReviewLike, toggleReviewBookmark } from "../api/animeApi";
+import { formatDate } from "../../../global/utils/formatDate";
 import type { ReviewResponse } from "../types";
 import StarRating from "./StarRating";
 import LikeButton from "../../feed/components/LikeButton";
@@ -27,14 +27,11 @@ const ReviewCard: FC<ReviewCardProps> = ({
   const [likeCount, setLikeCount] = useState(review.likeCount);
   const [bookmarked, setBookmarked] = useState(review.bookmarked);
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("ko-KR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  useEffect(() => {
+    setLiked(review.liked);
+    setLikeCount(review.likeCount);
+    setBookmarked(review.bookmarked);
+  }, [review.liked, review.likeCount, review.bookmarked]);
 
   const handleLike = async () => {
     if (!isAuthenticated) {
@@ -45,10 +42,8 @@ const ReviewCard: FC<ReviewCardProps> = ({
       const result = await toggleReviewLike(review.animeId, review.id);
       setLiked(result.liked);
       setLikeCount(result.likeCount);
-    } catch (err) {
-      if (isAxiosError(err)) {
-        toast.error("좋아요 처리에 실패했습니다.");
-      }
+    } catch {
+      toast.error("좋아요 처리에 실패했습니다.");
     }
   };
 
@@ -60,11 +55,14 @@ const ReviewCard: FC<ReviewCardProps> = ({
     try {
       const result = await toggleReviewBookmark(review.animeId, review.id);
       setBookmarked(result.bookmarked);
-    } catch (err) {
-      if (isAxiosError(err)) {
-        toast.error("북마크 처리에 실패했습니다.");
-      }
+    } catch {
+      toast.error("북마크 처리에 실패했습니다.");
     }
+  };
+
+  const handleDelete = async () => {
+    await onDelete();
+    setShowConfirm(false);
   };
 
   return (
@@ -122,7 +120,11 @@ const ReviewCard: FC<ReviewCardProps> = ({
           <BookmarkButton bookmarked={bookmarked} onToggle={handleBookmark} />
         </div>
         <p className="review-date text-xs text-subtle">
-          {formatDate(review.createdAt)}
+          {formatDate(review.createdAt, {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
         </p>
       </div>
 
@@ -134,10 +136,7 @@ const ReviewCard: FC<ReviewCardProps> = ({
           </p>
           <div className="flex gap-2">
             <button
-              onClick={() => {
-                onDelete();
-                setShowConfirm(false);
-              }}
+              onClick={handleDelete}
               className="confirm-delete-btn px-3 py-1.5 text-xs rounded-lg bg-error text-white hover:bg-error/90 transition-colors"
             >
               삭제

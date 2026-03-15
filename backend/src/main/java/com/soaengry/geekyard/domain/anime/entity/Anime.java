@@ -56,6 +56,12 @@ public class Anime {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "view_count", nullable = false)
+    private Integer viewCount = 0;
+
+    @Column(name = "review_count", nullable = false)
+    private Integer reviewCount = 0;
+
     @OneToOne(mappedBy = "anime", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private AnimeMetadata metadata;
 

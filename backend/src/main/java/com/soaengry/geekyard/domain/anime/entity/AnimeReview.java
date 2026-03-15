@@ -38,7 +38,7 @@ public class AnimeReview extends BaseTimeEntity {
     @Column(nullable = false, precision = 3, scale = 2)
     private BigDecimal score;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @Column(nullable = false)
@@ -74,11 +74,4 @@ public class AnimeReview extends BaseTimeEntity {
         if (content != null) this.content = content;
     }
 
-    public void incrementLikeCount() {
-        this.likeCount++;
-    }
-
-    public void decrementLikeCount() {
-        if (this.likeCount > 0) this.likeCount--;
-    }
 }
