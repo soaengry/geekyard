@@ -32,6 +32,8 @@ export interface CommentResponse {
   nickname: string
   profileImage: string | null
   content: string
+  likeCount: number
+  liked: boolean
   createdAt: string
   updatedAt: string
 }

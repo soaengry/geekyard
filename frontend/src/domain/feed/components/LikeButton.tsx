@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import { FC, memo } from 'react'
 
 interface LikeButtonProps {
   liked: boolean
@@ -22,4 +22,4 @@ const LikeButton: FC<LikeButtonProps> = ({ liked, count, onToggle, disabled }) =
   )
 }
 
-export default LikeButton
+export default memo(LikeButton)

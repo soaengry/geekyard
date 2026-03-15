@@ -35,6 +35,8 @@ public class AnimeReviewService {
     private final AnimeRepository animeRepository;
     private final ReviewLikeRepository reviewLikeRepository;
     private final ReviewBookmarkRepository reviewBookmarkRepository;
+    private final ReviewFinder reviewFinder;
+    private final AnimeWatchService animeWatchService;
 
     public Page<ReviewResponse> getReviews(Long animeId, Pageable pageable, User user) {
         Page<AnimeReview> reviews = animeReviewRepository.findByAnimeIdWithUser(animeId, pageable);
@@ -77,6 +79,8 @@ public class AnimeReviewService {
 
         AnimeReview review = AnimeReview.create(anime, user, request.score(), request.content());
         animeReviewRepository.save(review);
+        animeRepository.incrementReviewCount(anime.getId());
+        animeWatchService.markWatchedIfNot(anime, user);
         return toResponse(review);
     }
 
@@ -86,7 +90,7 @@ public class AnimeReviewService {
             validateScoreStep(request.score());
         }
 
-        AnimeReview review = findReviewOrThrow(reviewId, animeId);
+        AnimeReview review = reviewFinder.findOrThrow(reviewId, animeId);
         validateOwner(review, user);
 
         review.update(request.score(), request.content());
@@ -95,9 +99,10 @@ public class AnimeReviewService {
 
     @Transactional
     public void deleteReview(Long animeId, Long reviewId, User user) {
-        AnimeReview review = findReviewOrThrow(reviewId, animeId);
+        AnimeReview review = reviewFinder.findOrThrow(reviewId, animeId);
         validateOwner(review, user);
         animeReviewRepository.delete(review);
+        animeRepository.decrementReviewCount(review.getAnime().getId());
     }
 
     private ReviewResponse toResponse(AnimeReview review) {
@@ -113,15 +118,6 @@ public class AnimeReviewService {
                 ? review.getExternalUsername()
                 : NicknameGenerator.generate(review.getExternalUserId());
         return ReviewResponse.from(review, nickname, null, liked, bookmarked);
-    }
-
-    private AnimeReview findReviewOrThrow(Long reviewId, Long animeId) {
-        AnimeReview review = animeReviewRepository.findById(reviewId)
-                .orElseThrow(() -> new AnimeException(AnimeErrorCode.REVIEW_NOT_FOUND));
-        if (!review.getAnime().getId().equals(animeId)) {
-            throw new AnimeException(AnimeErrorCode.REVIEW_NOT_FOUND);
-        }
-        return review;
     }
 
     private void validateOwner(AnimeReview review, User user) {
