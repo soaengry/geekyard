@@ -1,17 +1,21 @@
 import { FC, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { useAuthStore } from '../../auth/store/useAuthStore'
 import { getAnimeDetail } from '../api/animeApi'
 import type { AnimeDetail } from '../types'
 import ReviewTab from '../components/ReviewTab'
 import FeedForm from '../../feed/components/FeedForm'
 import FeedList from '../../feed/components/FeedList'
+import AddToListModal from '../../animelist/components/AddToListModal'
 
 const AnimeDetailPage: FC = () => {
   const { id } = useParams<{ id: string }>()
+  const { isAuthenticated } = useAuthStore()
   const [anime, setAnime] = useState<AnimeDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [feedRefreshKey, setFeedRefreshKey] = useState(0)
+  const [showAddToList, setShowAddToList] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -88,11 +92,21 @@ const AnimeDetailPage: FC = () => {
         <div className="hero-gradient absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="hero-info absolute bottom-0 left-0 p-6">
           <h1 className="hero-title text-white text-2xl md:text-3xl font-bold drop-shadow-lg">{anime.name}</h1>
-          {anime.avgRating != null && (
-            <p className="hero-rating text-yellow-400 text-lg mt-1 drop-shadow">
-              {ratingStars(anime.avgRating)} {anime.avgRating.toFixed(1)}
-            </p>
-          )}
+          <div className="hero-meta flex items-center gap-3 mt-2">
+            {anime.avgRating != null && (
+              <p className="hero-rating text-yellow-400 text-lg drop-shadow">
+                {ratingStars(anime.avgRating)} {anime.avgRating.toFixed(1)}
+              </p>
+            )}
+            {isAuthenticated && (
+              <button
+                onClick={() => setShowAddToList(true)}
+                className="add-to-list-btn text-xs font-medium px-3 py-1.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
+              >
+                + 리스트 추가
+              </button>
+            )}
+          </div>
         </div>
         {anime.isAdult && (
           <div className="adult-badge absolute top-4 left-4 bg-error text-white text-sm font-bold px-2 py-1 rounded">
@@ -190,6 +204,14 @@ const AnimeDetailPage: FC = () => {
           <FeedList animeId={anime.id} refreshKey={feedRefreshKey} />
         </div>
       </section>
+
+      {showAddToList && anime && (
+        <AddToListModal
+          animeId={anime.id}
+          animeName={anime.name}
+          onClose={() => setShowAddToList(false)}
+        />
+      )}
     </div>
   )
 }

@@ -17,6 +17,7 @@ import {
   UserProfilePage,
 } from '../../domain/user/pages'
 import { AnimeListPage, AnimeDetailPage } from '../../domain/anime'
+import { CollectionListPage, CollectionDetailPage } from '../../domain/animelist'
 import ProtectedRoute from './ProtectedRoute'
 
 const AppRouter: FC = () => {
@@ -33,6 +34,8 @@ const AppRouter: FC = () => {
           <Route path="/users/:username" element={<UserProfilePage />} />
           <Route path="/anime" element={<AnimeListPage />} />
           <Route path="/anime/:id" element={<AnimeDetailPage />} />
+          <Route path="/collections" element={<CollectionListPage />} />
+          <Route path="/collections/:id" element={<CollectionDetailPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/me" element={<MyPage />} />
             <Route path="/me/edit" element={<EditProfilePage />} />
