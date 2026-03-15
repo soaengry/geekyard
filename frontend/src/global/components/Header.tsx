@@ -34,6 +34,9 @@ const Header: FC = () => {
           <Link to="/anime" className="nav-link text-content hover:text-primary font-medium transition-colors text-sm">
             애니
           </Link>
+          <Link to="/collections" className="nav-link text-content hover:text-primary font-medium transition-colors text-sm">
+            리스트
+          </Link>
         </div>
         <nav className="header-nav flex items-center gap-3 text-sm">
           {isAuthenticated ? (

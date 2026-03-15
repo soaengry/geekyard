@@ -33,7 +33,10 @@ public enum SuccessCode {
     FEED_DELETED(200, "피드가 삭제되었습니다."),
     COMMENT_CREATED(201, "댓글이 등록되었습니다."),
     COMMENT_UPDATED(200, "댓글이 수정되었습니다."),
-    COMMENT_DELETED(200, "댓글이 삭제되었습니다.");
+    COMMENT_DELETED(200, "댓글이 삭제되었습니다."),
+    ANIME_COLLECTION_LIST(200, "애니메이션 컬렉션 목록을 조회했습니다."),
+    ANIME_COLLECTION_DETAIL(200, "애니메이션 컬렉션 상세 정보를 조회했습니다."),
+    ANIME_COLLECTION_CREATED(201, "애니메이션 컬렉션이 생성되었습니다.");
 
     private final int code;
     private final String message;

@@ -7,6 +7,7 @@ import type { AnimeDetail } from "../types";
 import ReviewTab from "./ReviewTab";
 import FeedForm from "../../feed/components/FeedForm";
 import FeedList from "../../feed/components/FeedList";
+import AddToListModal from "../../animelist/components/AddToListModal";
 
 interface AnimeDetailModalProps {
   id: number;
@@ -23,6 +24,7 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
   const [activeTab, setActiveTab] = useState<Tab>("정보");
   const [feedRefreshKey, setFeedRefreshKey] = useState(0);
   const [watched, setWatched] = useState<boolean | null>(null);
+  const [showAddToList, setShowAddToList] = useState(false);
   useScrollLock(true);
 
   useEffect(() => {
@@ -147,16 +149,24 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
                     </p>
                   )}
                   {isAuthenticated && (
-                    <button
-                      onClick={handleToggleWatch}
-                      className={`watch-btn text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${
-                        watched
-                          ? "bg-primary text-white"
-                          : "bg-white/20 text-white hover:bg-white/30"
-                      }`}
-                    >
-                      {watched ? "봤어요 ✓" : "봤어요"}
-                    </button>
+                    <>
+                      <button
+                        onClick={handleToggleWatch}
+                        className={`watch-btn text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${
+                          watched
+                            ? "bg-primary text-white"
+                            : "bg-white/20 text-white hover:bg-white/30"
+                        }`}
+                      >
+                        {watched ? "봤어요 ✓" : "봤어요"}
+                      </button>
+                      <button
+                        onClick={() => setShowAddToList(true)}
+                        className="add-to-list-btn text-xs font-medium px-2.5 py-1 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
+                      >
+                        + 리스트
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -321,6 +331,13 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
           </div>
         )}
       </div>
+      {showAddToList && anime && (
+        <AddToListModal
+          animeId={anime.id}
+          animeName={anime.name}
+          onClose={() => setShowAddToList(false)}
+        />
+      )}
     </div>
   );
 };
