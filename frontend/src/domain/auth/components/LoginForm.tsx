@@ -40,7 +40,7 @@ const LoginForm: FC = () => {
     } catch (err) {
       if (isAxiosError(err)) {
         if (err.response?.status === 401) {
-          toast.error('이메일 또는 비밀번호가 올바르지 않습니다.')
+          toast.error('입력 정보를 확인해주세요.')
         } else if (err.response?.status === 403) {
           toast.error('삭제된 계정입니다. 계정 복구를 진행해주세요.')
         } else if (err.response?.status === 400) {

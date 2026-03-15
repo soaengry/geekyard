@@ -7,7 +7,9 @@ import com.soaengry.geekyard.domain.anime.repository.ReviewLikeRepository;
 import com.soaengry.geekyard.domain.feed.dto.response.CommentResponse;
 import com.soaengry.geekyard.domain.feed.dto.response.FeedResponse;
 import com.soaengry.geekyard.domain.feed.entity.Feed;
+import com.soaengry.geekyard.domain.feed.entity.FeedComment;
 import com.soaengry.geekyard.domain.feed.repository.FeedBookmarkRepository;
+import com.soaengry.geekyard.domain.feed.repository.FeedCommentLikeRepository;
 import com.soaengry.geekyard.domain.feed.repository.FeedCommentRepository;
 import com.soaengry.geekyard.domain.feed.repository.FeedLikeRepository;
 import com.soaengry.geekyard.domain.feed.repository.FeedRepository;
@@ -33,6 +35,7 @@ public class UserActivityService {
     private final FeedLikeRepository feedLikeRepository;
     private final FeedBookmarkRepository feedBookmarkRepository;
     private final FeedCommentRepository feedCommentRepository;
+    private final FeedCommentLikeRepository feedCommentLikeRepository;
     private final ReviewLikeRepository reviewLikeRepository;
     private final ReviewBookmarkRepository reviewBookmarkRepository;
 
@@ -52,8 +55,12 @@ public class UserActivityService {
     }
 
     public Page<CommentResponse> getMyComments(User user, Pageable pageable) {
-        return feedCommentRepository.findByUserWithFeed(user, pageable)
-                .map(CommentResponse::from);
+        Page<FeedComment> comments = feedCommentRepository.findByUserWithFeed(user, pageable);
+        List<Long> commentIds = comments.getContent().stream().map(FeedComment::getId).toList();
+        Set<Long> likedIds = commentIds.isEmpty()
+                ? Collections.emptySet()
+                : Set.copyOf(feedCommentLikeRepository.findLikedCommentIdsByUserAndCommentIds(user, commentIds));
+        return comments.map(comment -> CommentResponse.from(comment, likedIds.contains(comment.getId())));
     }
 
     public Page<ReviewResponse> getLikedReviews(User user, Pageable pageable) {

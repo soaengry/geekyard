@@ -21,6 +21,7 @@ public interface ReviewBookmarkRepository extends JpaRepository<ReviewBookmark, 
     @Query("SELECT rb.review.id FROM ReviewBookmark rb WHERE rb.user = :user AND rb.review.id IN :reviewIds")
     List<Long> findBookmarkedReviewIdsByUserAndReviewIds(@Param("user") User user, @Param("reviewIds") List<Long> reviewIds);
 
-    @Query("SELECT rb.review FROM ReviewBookmark rb JOIN FETCH rb.review.anime LEFT JOIN FETCH rb.review.user WHERE rb.user = :user ORDER BY rb.createdAt DESC")
+    @Query(value = "SELECT rb.review FROM ReviewBookmark rb JOIN FETCH rb.review.anime LEFT JOIN FETCH rb.review.user WHERE rb.user = :user ORDER BY rb.createdAt DESC",
+            countQuery = "SELECT COUNT(rb) FROM ReviewBookmark rb WHERE rb.user = :user")
     Page<AnimeReview> findBookmarkedReviewsByUser(@Param("user") User user, Pageable pageable);
 }

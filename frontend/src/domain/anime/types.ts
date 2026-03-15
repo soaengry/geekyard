@@ -47,6 +47,7 @@ export interface AnimeDetail {
   isAdult: boolean
   airYearQuarter: string
   seriesId: number
+  watched: boolean | null
 }
 
 export interface AnimeFilter {
@@ -83,6 +84,8 @@ export interface ReviewStatsResponse {
   averageScore: number
   totalCount: number
 }
+
+export type AnimeSortType = 'popular' | 'latest' | 'reviewCount' | 'rating'
 
 export interface CreateReviewRequest {
   score: number

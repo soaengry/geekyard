@@ -12,10 +12,12 @@ public record CommentResponse(
         String nickname,
         String profileImage,
         String content,
+        Integer likeCount,
+        boolean liked,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static CommentResponse from(FeedComment comment) {
+    public static CommentResponse from(FeedComment comment, boolean liked) {
         User user = comment.getUser();
         return new CommentResponse(
                 comment.getId(),
@@ -24,6 +26,8 @@ public record CommentResponse(
                 user.getNickname(),
                 user.getProfileImage(),
                 comment.getContent(),
+                comment.getLikeCount(),
+                liked,
                 comment.getCreatedAt(),
                 comment.getUpdatedAt()
         );

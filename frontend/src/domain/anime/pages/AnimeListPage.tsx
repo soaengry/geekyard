@@ -5,8 +5,9 @@ import AnimeCard from "../components/AnimeCard";
 import AnimeDetailModal from "../components/AnimeDetailModal";
 import AnimeFilterBar from "../components/AnimeFilterBar";
 import AnimeSidebar from "../components/AnimeSidebar";
+import AnimeSortSelector from "../components/AnimeSortSelector";
 import MobileFilterDrawer from "../components/MobileFilterDrawer";
-import type { AnimeFilter, AnimeListItem } from "../types";
+import type { AnimeFilter, AnimeListItem, AnimeSortType } from "../types";
 
 const AnimeListPage: FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,8 +29,9 @@ const AnimeListPage: FC = () => {
   const genres = searchParams.getAll("genres");
   const tags = searchParams.getAll("tags");
   const years = searchParams.getAll("years");
+  const sort = (searchParams.get("sort") ?? "popular") as AnimeSortType;
 
-  const filterKey = `${query}|${genres.join(",")}|${tags.join(",")}|${years.join(",")}`;
+  const filterKey = `${query}|${genres.join(",")}|${tags.join(",")}|${years.join(",")}|${sort}`;
 
   const activeFilterCount = genres.length + tags.length + years.length;
 
@@ -53,6 +55,7 @@ const AnimeListPage: FC = () => {
       genres,
       tags,
       years,
+      sort,
       page: 0,
       size: 20,
     })
@@ -74,6 +77,7 @@ const AnimeListPage: FC = () => {
       genres,
       tags,
       years,
+      sort,
       page,
       size: 20,
     })
@@ -159,6 +163,15 @@ const AnimeListPage: FC = () => {
     });
   };
 
+  const handleSortChange = (newSort: AnimeSortType) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newSort === "popular") next.delete("sort");
+      else next.set("sort", newSort);
+      return next;
+    });
+  };
+
   const handleClearFilters = () => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -233,6 +246,10 @@ const AnimeListPage: FC = () => {
                 onGenreToggle={handleGenreToggle}
               />
             </div>
+          </div>
+
+          <div className="sort-selector-wrapper mb-4">
+            <AnimeSortSelector value={sort} onChange={handleSortChange} />
           </div>
 
           {initialLoading ? (

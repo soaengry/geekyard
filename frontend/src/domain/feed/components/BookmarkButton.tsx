@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import { FC, memo } from 'react'
 
 interface BookmarkButtonProps {
   bookmarked: boolean
@@ -32,4 +32,4 @@ const BookmarkButton: FC<BookmarkButtonProps> = ({ bookmarked, onToggle, disable
   )
 }
 
-export default BookmarkButton
+export default memo(BookmarkButton)

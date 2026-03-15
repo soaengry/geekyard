@@ -23,6 +23,7 @@ import ReviewCard from "./ReviewCard";
 
 interface ReviewTabProps {
   animeId: number;
+  onWatchStatusChange?: () => void;
 }
 
 const reviewSchema = z.object({
@@ -32,13 +33,14 @@ const reviewSchema = z.object({
     .max(5, "별점은 5점 이하여야 합니다."),
   content: z
     .string()
-    .min(1, "리뷰 내용을 입력해주세요.")
-    .max(2000, "리뷰는 2000자 이내로 작성해주세요."),
+    .max(2000, "리뷰는 2000자 이내로 작성해주세요.")
+    .optional()
+    .default(""),
 });
 
 type ReviewFormValues = z.infer<typeof reviewSchema>;
 
-const ReviewTab: FC<ReviewTabProps> = ({ animeId }) => {
+const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const currentUser = useAuthStore((s) => s.user);
 
@@ -133,6 +135,11 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId }) => {
     reset({ score: 0, content: "" });
   };
 
+  const onValidationError = () => {
+    const scoreError = errors.score?.message;
+    if (scoreError) toast.error(scoreError);
+  };
+
   const onSubmit = async (data: ReviewFormValues) => {
     try {
       if (editingReview) {
@@ -141,6 +148,7 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId }) => {
       } else {
         await createReview(animeId, data);
         toast.success("리뷰가 등록되었습니다.");
+        onWatchStatusChange?.();
       }
       closeForm();
       fetchInitialData();
@@ -206,7 +214,9 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId }) => {
           </div>
         ) : showForm ? (
           <form
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={(e) => {
+              handleSubmit(onSubmit, onValidationError)(e).catch(() => {});
+            }}
             className="review-form p-4 rounded-lg bg-background border border-content/10 space-y-4"
           >
             <h3 className="review-form-title text-sm font-bold text-content">
@@ -217,7 +227,7 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId }) => {
               <div className="flex items-center gap-2">
                 <StarRating
                   value={scoreValue}
-                  onChange={(v) => setValue("score", v, { shouldValidate: true })}
+                  onChange={(v) => setValue("score", v)}
                   size="lg"
                 />
                 <span className="text-sm font-medium text-content">
