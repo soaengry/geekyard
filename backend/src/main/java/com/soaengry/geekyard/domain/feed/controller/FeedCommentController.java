@@ -1,5 +1,6 @@
 package com.soaengry.geekyard.domain.feed.controller;
 
+import com.soaengry.geekyard.domain.feed.dto.CommentSortType;
 import com.soaengry.geekyard.domain.feed.dto.request.CreateCommentRequest;
 import com.soaengry.geekyard.domain.feed.dto.request.UpdateCommentRequest;
 import com.soaengry.geekyard.domain.feed.dto.response.CommentResponse;
@@ -7,6 +8,7 @@ import com.soaengry.geekyard.domain.feed.service.FeedCommentService;
 import com.soaengry.geekyard.domain.user.entity.User;
 import com.soaengry.geekyard.global.common.ApiSuccessCode;
 import com.soaengry.geekyard.global.common.SuccessCode;
+import com.soaengry.geekyard.global.common.dto.LikeResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import com.soaengry.geekyard.global.util.PageRequestFactory;
@@ -26,9 +28,11 @@ public class FeedCommentController {
     public Page<CommentResponse> getComments(
             @PathVariable Long feedId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "LATEST") String sort,
+            @AuthenticationPrincipal User user
     ) {
-        return feedCommentService.getComments(feedId, PageRequestFactory.of(page, size));
+        return feedCommentService.getComments(feedId, CommentSortType.from(sort), PageRequestFactory.of(page, size), user);
     }
 
     @PostMapping
@@ -39,6 +43,16 @@ public class FeedCommentController {
             @Valid @RequestBody CreateCommentRequest request
     ) {
         return feedCommentService.createComment(feedId, user, request);
+    }
+
+    @PostMapping("/{commentId}/like")
+    @ApiSuccessCode(SuccessCode.OK)
+    public LikeResponse toggleCommentLike(
+            @PathVariable Long feedId,
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal User user
+    ) {
+        return feedCommentService.toggleCommentLike(feedId, commentId, user);
     }
 
     @PatchMapping("/{commentId}")

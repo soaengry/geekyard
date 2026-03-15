@@ -10,4 +10,5 @@ export const ANIME_ENDPOINTS = {
     `/api/anime/${animeId}/reviews/${reviewId}/like`,
   REVIEW_BOOKMARK: (animeId: number, reviewId: number) =>
     `/api/anime/${animeId}/reviews/${reviewId}/bookmark`,
+  WATCH: (id: number) => `/api/anime/${id}/watch`,
 };

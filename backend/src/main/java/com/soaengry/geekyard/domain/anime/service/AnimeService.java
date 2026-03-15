@@ -2,6 +2,7 @@ package com.soaengry.geekyard.domain.anime.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.soaengry.geekyard.domain.anime.dto.AnimeSortType;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeDetailResponse;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeFilterResponse;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeListItemResponse;
@@ -10,6 +11,8 @@ import com.soaengry.geekyard.domain.anime.exception.AnimeErrorCode;
 import com.soaengry.geekyard.domain.anime.exception.AnimeException;
 import com.soaengry.geekyard.domain.anime.repository.AnimeMetadataRepository;
 import com.soaengry.geekyard.domain.anime.repository.AnimeRepository;
+import com.soaengry.geekyard.domain.anime.repository.AnimeWatchRepository;
+import com.soaengry.geekyard.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +33,7 @@ public class AnimeService {
 
     private final AnimeRepository animeRepository;
     private final AnimeMetadataRepository animeMetadataRepository;
+    private final AnimeWatchRepository animeWatchRepository;
     private final ObjectMapper objectMapper;
 
     public AnimeFilterResponse getAnimeFilter() {
@@ -37,7 +44,8 @@ public class AnimeService {
     }
 
     public Page<AnimeListItemResponse> searchAnime(
-            String q, List<String> genres, List<String> tags, List<String> years, int page, int size) {
+            String q, List<String> genres, List<String> tags, List<String> years,
+            String sort, int page, int size) {
 
         String queryParam = StringUtils.hasText(q) ? q : null;
         String genresJson = (genres != null && !genres.isEmpty()) ? toJsonArray(genres) : null;
@@ -46,8 +54,10 @@ public class AnimeService {
         boolean hasYears = years != null && !years.isEmpty();
         List<String> yearValues = hasYears ? years : List.of("_");
 
+        AnimeSortType sortType = AnimeSortType.from(sort);
         PageRequest pageable = PageRequest.of(page, size);
-        Page<Long> idPage = animeRepository.searchAnimeIds(queryParam, genresJson, tagsJson, hasYears, yearValues, pageable);
+        Page<Long> idPage = animeRepository.searchAnimeIds(
+                queryParam, genresJson, tagsJson, hasYears, yearValues, sortType, pageable);
 
         List<Long> ids = idPage.getContent();
         if (ids.isEmpty()) {
@@ -56,17 +66,24 @@ public class AnimeService {
 
         List<Anime> animes = animeRepository.findAllByIdWithMetadata(ids);
 
-        List<AnimeListItemResponse> content = animes.stream()
+        // Preserve the order from searchAnimeIds
+        Map<Long, Anime> animeMap = animes.stream()
+                .collect(Collectors.toMap(Anime::getId, Function.identity()));
+        List<AnimeListItemResponse> content = ids.stream()
+                .map(animeMap::get)
                 .map(AnimeListItemResponse::from)
                 .toList();
 
         return new PageImpl<>(content, pageable, idPage.getTotalElements());
     }
 
-    public AnimeDetailResponse getAnimeDetail(Long id) {
+    @Transactional
+    public AnimeDetailResponse getAnimeDetail(Long id, User user) {
         Anime anime = animeRepository.findByIdWithMetadata(id)
                 .orElseThrow(() -> new AnimeException(AnimeErrorCode.ANIME_NOT_FOUND));
-        return AnimeDetailResponse.from(anime);
+        animeRepository.incrementViewCount(id);
+        Boolean watched = user != null ? animeWatchRepository.existsByAnimeAndUser(anime, user) : null;
+        return AnimeDetailResponse.from(anime, watched);
     }
 
     private String toJsonArray(List<String> values) {

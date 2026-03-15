@@ -16,6 +16,7 @@ interface AnimeListParams {
   genres?: string[]
   tags?: string[]
   years?: string[]
+  sort?: string
   page?: number
   size?: number
 }
@@ -26,13 +27,14 @@ export const getAnimeFilter = async (): Promise<AnimeFilter> => {
 }
 
 export const getAnimeList = async (params: AnimeListParams = {}): Promise<PageResponse<AnimeListItem>> => {
-  const { q, genres, tags, years, page = 0, size = 20 } = params
+  const { q, genres, tags, years, sort, page = 0, size = 20 } = params
 
   const searchParams = new URLSearchParams()
   if (q) searchParams.append('q', q)
   genres?.forEach((g) => searchParams.append('genres', g))
   tags?.forEach((t) => searchParams.append('tags', t))
   years?.forEach((y) => searchParams.append('years', y))
+  if (sort) searchParams.append('sort', sort)
   searchParams.append('page', String(page))
   searchParams.append('size', String(size))
 
@@ -106,6 +108,13 @@ export const toggleReviewLike = async (
   const response = await axiosInstance.post<{
     data: { liked: boolean; likeCount: number }
   }>(ANIME_ENDPOINTS.REVIEW_LIKE(animeId, reviewId))
+  return response.data.data
+}
+
+export const toggleAnimeWatch = async (animeId: number): Promise<{ watched: boolean }> => {
+  const response = await axiosInstance.post<{ data: { watched: boolean } }>(
+    ANIME_ENDPOINTS.WATCH(animeId),
+  )
   return response.data.data
 }
 
