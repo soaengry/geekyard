@@ -19,9 +19,7 @@ public enum UserErrorCode {
     OAUTH_ACCOUNT("소셜 로그인 계정입니다. 카카오, 네이버, 구글 로그인을 이용해주세요."),
     EMAIL_ALREADY_VERIFIED("이미 인증된 이메일입니다."),
     VERIFICATION_TOKEN_INVALID("유효하지 않은 인증 링크입니다."),
-    VERIFICATION_TOKEN_EXPIRED("만료된 인증 링크입니다."),
-    FILE_TOO_LARGE("파일 크기는 10MB 이하이어야 합니다."),
-    INVALID_FILE_TYPE("지원하지 않는 파일 형식입니다. (jpeg, jpg, png, webp만 허용)");
+    VERIFICATION_TOKEN_EXPIRED("만료된 인증 링크입니다.");
 
     private final String message;
 }

@@ -1,8 +1,5 @@
 package com.soaengry.geekyard.global.exception;
 
-import com.soaengry.geekyard.domain.anime.exception.AnimeException;
-import com.soaengry.geekyard.domain.feed.exception.FeedException;
-import com.soaengry.geekyard.domain.user.exception.UserException;
 import com.soaengry.geekyard.global.common.ApiResponse;
 import com.soaengry.geekyard.global.common.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -19,27 +16,12 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(AnimeException.class)
-    public ResponseEntity<ApiResponse<?>> handleAnimeException(AnimeException e) {
-        log.warn("Anime Exception: {} - {}", e.getErrorCode().name(), e.getMessage());
-        HttpStatus status = determineHttpStatusFromCode(e.getErrorCode().name());
-        ErrorCode errorCode = ErrorCode.from(e.getErrorCode().name(), e.getMessage(), status);
-        return ResponseEntity.status(status).body(ApiResponse.error(errorCode));
-    }
-
-    @ExceptionHandler(FeedException.class)
-    public ResponseEntity<ApiResponse<?>> handleFeedException(FeedException e) {
-        log.warn("Feed Exception: {} - {}", e.getErrorCode().name(), e.getMessage());
-        HttpStatus status = determineHttpStatusFromCode(e.getErrorCode().name());
-        ErrorCode errorCode = ErrorCode.from(e.getErrorCode().name(), e.getMessage(), status);
-        return ResponseEntity.status(status).body(ApiResponse.error(errorCode));
-    }
-
-    @ExceptionHandler(UserException.class)
-    public ResponseEntity<ApiResponse<?>> handleUserException(UserException e) {
-        log.warn("User Exception: {} - {}", e.getErrorCode().name(), e.getMessage());
-        HttpStatus status = determineHttpStatusFromCode(e.getErrorCode().name());
-        ErrorCode errorCode = ErrorCode.from(e.getErrorCode().name(), e.getMessage(), status);
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<ApiResponse<?>> handleBaseException(BaseException e) {
+        String codeName = e.getErrorCodeName();
+        log.warn("Domain Exception: {} - {}", codeName, e.getMessage());
+        HttpStatus status = determineHttpStatusFromCode(codeName);
+        ErrorCode errorCode = ErrorCode.from(codeName, e.getMessage(), status);
         return ResponseEntity.status(status).body(ApiResponse.error(errorCode));
     }
 
@@ -61,7 +43,7 @@ public class GlobalExceptionHandler {
     }
 
     public HttpStatus determineHttpStatusFromCode(String codeName) {
-        if (codeName.startsWith("AUTH")) {
+        if (codeName.startsWith("AUTH") || "UNAUTHORIZED_ACCESS".equals(codeName)) {
             return HttpStatus.UNAUTHORIZED;
         }
         if (codeName.equals("INVALID_PASSWORD") || codeName.endsWith("UNAUTHORIZED")) {

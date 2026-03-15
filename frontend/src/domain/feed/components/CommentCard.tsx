@@ -1,17 +1,32 @@
-import { FC, useState } from 'react'
+import { FC, useEffect, useState } from 'react'
+import { formatDate } from '../../../global/utils/formatDate'
 import type { CommentResponse } from '../types'
+import LikeButton from './LikeButton'
 
 interface CommentCardProps {
   comment: CommentResponse
   isOwner: boolean
+  isAuthenticated: boolean
   onEdit: (content: string) => void
   onDelete: () => void
+  onToggleLike: () => void
 }
 
-const CommentCard: FC<CommentCardProps> = ({ comment, isOwner, onEdit, onDelete }) => {
+const CommentCard: FC<CommentCardProps> = ({
+  comment,
+  isOwner,
+  isAuthenticated,
+  onEdit,
+  onDelete,
+  onToggleLike,
+}) => {
   const [editing, setEditing] = useState(false)
   const [editContent, setEditContent] = useState(comment.content)
   const [showConfirm, setShowConfirm] = useState(false)
+
+  useEffect(() => {
+    setEditContent(comment.content)
+  }, [comment.content])
 
   const handleSave = () => {
     if (editContent.trim()) {
@@ -20,13 +35,9 @@ const CommentCard: FC<CommentCardProps> = ({ comment, isOwner, onEdit, onDelete 
     }
   }
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
+  const handleDelete = async () => {
+    await onDelete()
+    setShowConfirm(false)
   }
 
   return (
@@ -82,32 +93,37 @@ const CommentCard: FC<CommentCardProps> = ({ comment, isOwner, onEdit, onDelete 
             <p className="comment-content text-sm text-content/80 mt-0.5 whitespace-pre-line">
               {comment.content}
             </p>
-            {isOwner && (
-              <div className="comment-actions flex gap-2 mt-1">
-                <button
-                  onClick={() => setEditing(true)}
-                  className="comment-edit-trigger text-xs text-subtle hover:text-primary transition-colors"
-                >
-                  수정
-                </button>
-                <button
-                  onClick={() => setShowConfirm(true)}
-                  className="comment-delete-trigger text-xs text-subtle hover:text-error transition-colors"
-                >
-                  삭제
-                </button>
-              </div>
-            )}
+            <div className="comment-actions flex items-center gap-3 mt-1">
+              <LikeButton
+                liked={comment.liked}
+                count={comment.likeCount}
+                onToggle={onToggleLike}
+                disabled={!isAuthenticated}
+              />
+              {isOwner && (
+                <>
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="comment-edit-trigger text-xs text-subtle hover:text-primary transition-colors"
+                  >
+                    수정
+                  </button>
+                  <button
+                    onClick={() => setShowConfirm(true)}
+                    className="comment-delete-trigger text-xs text-subtle hover:text-error transition-colors"
+                  >
+                    삭제
+                  </button>
+                </>
+              )}
+            </div>
           </>
         )}
         {showConfirm && (
           <div className="comment-delete-confirm mt-2 flex gap-2 items-center">
             <span className="text-xs text-content">삭제하시겠습니까?</span>
             <button
-              onClick={() => {
-                onDelete()
-                setShowConfirm(false)
-              }}
+              onClick={handleDelete}
               className="px-2 py-0.5 text-xs rounded bg-error text-white hover:bg-error/90 transition-colors"
             >
               삭제

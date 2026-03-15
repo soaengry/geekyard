@@ -6,6 +6,8 @@ export const FEED_ENDPOINTS = {
   COMMENTS: (feedId: number) => `/api/feeds/${feedId}/comments`,
   COMMENT: (feedId: number, commentId: number) =>
     `/api/feeds/${feedId}/comments/${commentId}`,
+  COMMENT_LIKE: (feedId: number, commentId: number) =>
+    `/api/feeds/${feedId}/comments/${commentId}/like`,
 } as const
 
 export const USER_ACTIVITY_ENDPOINTS = {

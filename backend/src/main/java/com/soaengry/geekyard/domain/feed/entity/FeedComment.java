@@ -30,11 +30,15 @@ public class FeedComment extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
+    @Column(nullable = false)
+    private Integer likeCount = 0;
+
     @Builder
     private FeedComment(Feed feed, User user, String content) {
         this.feed = feed;
         this.user = user;
         this.content = content;
+        this.likeCount = 0;
     }
 
     public static FeedComment create(Feed feed, User user, String content) {
