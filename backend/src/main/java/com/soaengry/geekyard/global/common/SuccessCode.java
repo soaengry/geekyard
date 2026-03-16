@@ -36,7 +36,8 @@ public enum SuccessCode {
     COMMENT_DELETED(200, "댓글이 삭제되었습니다."),
     ANIME_COLLECTION_LIST(200, "애니메이션 컬렉션 목록을 조회했습니다."),
     ANIME_COLLECTION_DETAIL(200, "애니메이션 컬렉션 상세 정보를 조회했습니다."),
-    ANIME_COLLECTION_CREATED(201, "애니메이션 컬렉션이 생성되었습니다.");
+    ANIME_COLLECTION_CREATED(201, "애니메이션 컬렉션이 생성되었습니다."),
+    CHAT_MESSAGES(200, "채팅 메시지를 조회했습니다.");
 
     private final int code;
     private final String message;

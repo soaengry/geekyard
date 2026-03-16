@@ -8,6 +8,7 @@ import ReviewTab from "./ReviewTab";
 import FeedForm from "../../feed/components/FeedForm";
 import FeedList from "../../feed/components/FeedList";
 import AddToListModal from "../../animelist/components/AddToListModal";
+import ChatTab from "../../chat/components/ChatTab";
 
 interface AnimeDetailModalProps {
   id: number;
@@ -318,9 +319,7 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
                   <FeedList animeId={anime.id} refreshKey={feedRefreshKey} />
                 </div>
               ) : (
-                <div className="tab-placeholder p-5 text-center text-subtle py-20">
-                  <p>준비 중입니다</p>
-                </div>
+                <ChatTab animeId={anime.id} />
               )}
             </div>
           </>
