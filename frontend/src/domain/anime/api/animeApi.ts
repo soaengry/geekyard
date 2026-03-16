@@ -8,6 +8,7 @@ import type {
   PageResponse,
   ReviewResponse,
   ReviewStatsResponse,
+  SimilarAnimeItem,
   UpdateReviewRequest,
 } from '../types'
 
@@ -114,6 +115,13 @@ export const toggleReviewLike = async (
 export const toggleAnimeWatch = async (animeId: number): Promise<{ watched: boolean }> => {
   const response = await axiosInstance.post<{ data: { watched: boolean } }>(
     ANIME_ENDPOINTS.WATCH(animeId),
+  )
+  return response.data.data
+}
+
+export const getSimilarAnime = async (animeId: number): Promise<SimilarAnimeItem[]> => {
+  const response = await axiosInstance.get<{ data: SimilarAnimeItem[] }>(
+    ANIME_ENDPOINTS.SIMILAR(animeId),
   )
   return response.data.data
 }

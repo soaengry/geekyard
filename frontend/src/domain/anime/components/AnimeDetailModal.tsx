@@ -2,8 +2,8 @@ import { FC, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { useScrollLock } from "../../../global/hooks/useScrollLock";
 import { useAuthStore } from "../../auth/store/useAuthStore";
-import { getAnimeDetail, toggleAnimeWatch } from "../api/animeApi";
-import type { AnimeDetail } from "../types";
+import { getAnimeDetail, getSimilarAnime, toggleAnimeWatch } from "../api/animeApi";
+import type { AnimeDetail, SimilarAnimeItem } from "../types";
 import ReviewTab from "./ReviewTab";
 import FeedForm from "../../feed/components/FeedForm";
 import FeedList from "../../feed/components/FeedList";
@@ -20,12 +20,14 @@ type Tab = (typeof TABS)[number];
 
 const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const [currentId, setCurrentId] = useState(id);
   const [anime, setAnime] = useState<AnimeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("정보");
   const [feedRefreshKey, setFeedRefreshKey] = useState(0);
   const [watched, setWatched] = useState<boolean | null>(null);
   const [showAddToList, setShowAddToList] = useState(false);
+  const [similarAnime, setSimilarAnime] = useState<SimilarAnimeItem[]>([]);
   useScrollLock(true);
 
   useEffect(() => {
@@ -37,16 +39,25 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
   }, [onClose]);
 
   useEffect(() => {
+    setCurrentId(id);
+  }, [id]);
+
+  useEffect(() => {
     setLoading(true);
     setAnime(null);
-    getAnimeDetail(id)
+    setSimilarAnime([]);
+    setActiveTab("정보");
+    getAnimeDetail(currentId)
       .then((data) => {
         setAnime(data);
         setWatched(data.watched);
       })
       .catch(() => setAnime(null))
       .finally(() => setLoading(false));
-  }, [id]);
+    getSimilarAnime(currentId)
+      .then(setSimilarAnime)
+      .catch(() => setSimilarAnime([]));
+  }, [currentId]);
 
   const customImage = useMemo(
     () => anime?.images?.find((img) => img.optionName === "home_custom"),
@@ -300,6 +311,50 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
                               </span>
                             </div>
                           )}
+                      </div>
+                    </div>
+                  )}
+
+                  {similarAnime.length > 0 && (
+                    <div className="similar-section">
+                      <h3 className="section-title text-sm font-bold text-content mb-2">
+                        비슷한 작품
+                      </h3>
+                      <div className="similar-list flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+                        {similarAnime.map((item) => (
+                          <div
+                            key={item.id}
+                            onClick={() => setCurrentId(item.id)}
+                            className="similar-card shrink-0 w-28 cursor-pointer group"
+                          >
+                            <div className="similar-card-thumbnail relative aspect-[2/3] rounded-lg overflow-hidden bg-content/10">
+                              {item.img ? (
+                                <img
+                                  src={item.img}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-subtle text-xs">
+                                  이미지 없음
+                                </div>
+                              )}
+                              {item.avgRating != null && (
+                                <div className="similar-card-rating absolute top-1 right-1 bg-black/70 text-yellow-400 text-[10px] font-bold px-1 py-0.5 rounded">
+                                  ★ {item.avgRating.toFixed(1)}
+                                </div>
+                              )}
+                            </div>
+                            <p className="similar-card-title text-xs font-medium text-content mt-1.5 line-clamp-2 leading-tight">
+                              {item.name}
+                            </p>
+                            {item.genres.length > 0 && (
+                              <p className="similar-card-genres text-[10px] text-subtle mt-0.5 line-clamp-1">
+                                {item.genres.slice(0, 2).join(" · ")}
+                              </p>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
