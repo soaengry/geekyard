@@ -85,6 +85,17 @@ export interface ReviewStatsResponse {
   totalCount: number
 }
 
+export interface SimilarAnimeItem {
+  id: number
+  name: string
+  img: string
+  genres: string[]
+  avgRating: number
+  medium: string
+  isAdult: boolean
+  similarity: number
+}
+
 export type AnimeSortType = 'popular' | 'latest' | 'reviewCount' | 'rating'
 
 export interface CreateReviewRequest {
