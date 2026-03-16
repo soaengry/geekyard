@@ -3,6 +3,7 @@ package com.soaengry.geekyard.domain.anime.controller;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeDetailResponse;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeFilterResponse;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeListItemResponse;
+import com.soaengry.geekyard.domain.anime.dto.response.SimilarAnimeResponse;
 import com.soaengry.geekyard.domain.anime.dto.response.WatchResponse;
 import com.soaengry.geekyard.domain.anime.service.AnimeService;
 import com.soaengry.geekyard.domain.anime.service.AnimeWatchService;
@@ -49,6 +50,12 @@ public class AnimeController {
     public AnimeDetailResponse getAnimeDetail(@PathVariable Long id,
                                                @AuthenticationPrincipal User user) {
         return animeService.getAnimeDetail(id, user);
+    }
+
+    @GetMapping("/{id}/similar")
+    @ApiSuccessCode(SuccessCode.SIMILAR_ANIME_LIST)
+    public List<SimilarAnimeResponse> getSimilarAnime(@PathVariable Long id) {
+        return animeService.getSimilarAnime(id);
     }
 
     @PostMapping("/{id}/watch")

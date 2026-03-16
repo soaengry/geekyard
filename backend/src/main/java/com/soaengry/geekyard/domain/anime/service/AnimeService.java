@@ -6,11 +6,13 @@ import com.soaengry.geekyard.domain.anime.dto.AnimeSortType;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeDetailResponse;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeFilterResponse;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeListItemResponse;
+import com.soaengry.geekyard.domain.anime.dto.response.SimilarAnimeResponse;
 import com.soaengry.geekyard.domain.anime.entity.Anime;
 import com.soaengry.geekyard.domain.anime.exception.AnimeErrorCode;
 import com.soaengry.geekyard.domain.anime.exception.AnimeException;
 import com.soaengry.geekyard.domain.anime.repository.AnimeMetadataRepository;
 import com.soaengry.geekyard.domain.anime.repository.AnimeRepository;
+import com.soaengry.geekyard.domain.anime.repository.AnimeSimilarRepository;
 import com.soaengry.geekyard.domain.anime.repository.AnimeWatchRepository;
 import com.soaengry.geekyard.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ public class AnimeService {
     private final AnimeRepository animeRepository;
     private final AnimeMetadataRepository animeMetadataRepository;
     private final AnimeWatchRepository animeWatchRepository;
+    private final AnimeSimilarRepository animeSimilarRepository;
     private final ObjectMapper objectMapper;
 
     public AnimeFilterResponse getAnimeFilter() {
@@ -84,6 +87,12 @@ public class AnimeService {
         animeRepository.incrementViewCount(id);
         Boolean watched = user != null ? animeWatchRepository.existsByAnimeAndUser(anime, user) : null;
         return AnimeDetailResponse.from(anime, watched);
+    }
+
+    public List<SimilarAnimeResponse> getSimilarAnime(Long animeId) {
+        return animeSimilarRepository.findByAnimeIdWithSimilarAnime(animeId).stream()
+                .map(SimilarAnimeResponse::from)
+                .toList();
     }
 
     private String toJsonArray(List<String> values) {
