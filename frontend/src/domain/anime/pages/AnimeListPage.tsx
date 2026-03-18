@@ -44,6 +44,7 @@ const AnimeListPage: FC = () => {
 
   // 필터 변경 시 초기화 후 첫 페이지 fetch
   useEffect(() => {
+    window.scrollTo(0, 0);
     setItems([]);
     setPage(0);
     setHasMore(true);
@@ -198,7 +199,7 @@ const AnimeListPage: FC = () => {
       <div className="page-layout flex gap-8">
         {/* Left Sidebar — desktop only */}
         <aside className="sidebar-wrapper hidden md:block w-52 shrink-0">
-          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 custom-scrollbar hover-scrollbar">
+          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1 hover-scrollbar">
             <AnimeSidebar
               availableGenres={filterData?.genres ?? []}
               availableTags={filterData?.tags ?? []}

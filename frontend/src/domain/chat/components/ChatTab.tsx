@@ -57,10 +57,10 @@ const ChatTab: FC<ChatTabProps> = ({ animeId }) => {
   }
 
   return (
-    <div className="chat-tab flex flex-col h-[calc(95vh-20rem)]">
+    <div className="chat-tab flex flex-col flex-1 min-h-0">
       <div
         ref={chatContainerRef}
-        className="chat-messages flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3"
+        className="chat-messages flex-1 overflow-y-auto p-4 space-y-3"
       >
         {messages.length === 0 ? (
           <div className="chat-empty text-center text-subtle py-10">
