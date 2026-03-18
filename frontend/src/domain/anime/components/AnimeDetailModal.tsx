@@ -2,7 +2,11 @@ import { FC, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { useScrollLock } from "../../../global/hooks/useScrollLock";
 import { useAuthStore } from "../../auth/store/useAuthStore";
-import { getAnimeDetail, getSimilarAnime, toggleAnimeWatch } from "../api/animeApi";
+import {
+  getAnimeDetail,
+  getSimilarAnime,
+  toggleAnimeWatch,
+} from "../api/animeApi";
 import type { AnimeDetail, SimilarAnimeItem } from "../types";
 import ReviewTab from "./ReviewTab";
 import FeedForm from "../../feed/components/FeedForm";
@@ -92,7 +96,7 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
       <div className="anime-detail-backdrop absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
       <div
-        className="anime-detail-modal relative z-10 bg-surface rounded-2xl w-full max-w-2xl h-[95vh] overflow-y-auto md:overflow-hidden md:flex md:flex-col custom-scrollbar shadow-2xl"
+        className="anime-detail-modal relative z-10 bg-surface rounded-2xl w-full max-w-2xl h-[85vh] overflow-y-auto hover-scrollbar md:overflow-hidden md:flex md:flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
@@ -122,7 +126,6 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
                   src={anime.highlightVideo.hlsUrl}
                   autoPlay
                   muted
-                  loop
                   playsInline
                   className="hero-video w-full h-full object-cover"
                 />
@@ -185,7 +188,9 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
             </div>
 
             {/* Scrollable body — desktop: flex-1 scroll, mobile: handled by parent */}
-            <div className="detail-body md:flex-1 md:min-h-0 md:overflow-y-auto custom-scrollbar">
+            <div
+              className={`detail-body md:flex-1 md:min-h-0 flex flex-col ${activeTab === "톡톡" ? "" : "md:overflow-y-auto hover-scrollbar"}`}
+            >
               {/* Tab bar — sticky */}
               <div className="tab-bar sticky top-0 z-10 bg-surface border-b border-content/10">
                 <div className="tab-list flex">
@@ -210,7 +215,7 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
 
               {/* Tab content */}
               {activeTab === "정보" ? (
-                <div className="tab-info p-5 space-y-5">
+                <div className="tab-info p-5 space-y-5 overflow-y-auto hover-scrollbar">
                   <div className="genre-tag-list flex flex-wrap gap-2">
                     {anime.genres?.map((g) => (
                       <span
@@ -320,7 +325,7 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
                       <h3 className="section-title text-sm font-bold text-content mb-2">
                         비슷한 작품
                       </h3>
-                      <div className="similar-list flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+                      <div className="similar-list flex gap-3 overflow-x-auto hover-scrollbar pb-2">
                         {similarAnime.map((item) => (
                           <div
                             key={item.id}
@@ -360,9 +365,12 @@ const AnimeDetailModal: FC<AnimeDetailModalProps> = ({ id, onClose }) => {
                   )}
                 </div>
               ) : activeTab === "리뷰" ? (
-                <ReviewTab animeId={anime.id} onWatchStatusChange={handleWatchStatusChange} />
+                <ReviewTab
+                  animeId={anime.id}
+                  onWatchStatusChange={handleWatchStatusChange}
+                />
               ) : activeTab === "피드" ? (
-                <div className="tab-feed p-5 space-y-4">
+                <div className="tab-feed p-5 space-y-4 overflow-y-auto hover-scrollbar">
                   {isAuthenticated && (
                     <FeedForm
                       preSelectedAnimeId={anime.id}
