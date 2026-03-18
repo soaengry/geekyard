@@ -130,7 +130,7 @@ const AddToListModal: FC<AddToListModalProps> = ({
         </div>
 
         {/* List items */}
-        <div className="add-to-list-items max-h-64 overflow-y-auto custom-scrollbar">
+        <div className="add-to-list-items max-h-64 overflow-y-auto">
           {loading ? (
             <div className="px-5 py-6 space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
