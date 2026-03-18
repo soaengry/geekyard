@@ -67,7 +67,7 @@ const SignUpForm: FC = () => {
       const { data: profileData } = await authApi.getMyProfile()
       login(profileData.data, accessToken, refreshToken)
       toast.success('회원가입이 완료되었습니다.')
-      navigate('/me')
+      navigate('/genre-selection')
     } catch (err) {
       if (isAxiosError(err)) {
         if (err.response?.status === 409) {

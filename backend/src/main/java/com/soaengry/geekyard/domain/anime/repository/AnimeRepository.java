@@ -32,4 +32,14 @@ public interface AnimeRepository extends JpaRepository<Anime, Long>, AnimeReposi
     @Modifying
     @Query("UPDATE Anime a SET a.reviewCount = a.reviewCount - 1 WHERE a.id = :id AND a.reviewCount > 0")
     void decrementReviewCount(@Param("id") Long id);
+
+    @Query(value = """
+            SELECT a.id FROM anime a
+            LEFT JOIN anime_metadata m ON a.id = m.anime_id
+            WHERE ARRAY(SELECT jsonb_array_elements_text(m.genres))
+                  && ARRAY(SELECT jsonb_array_elements_text(CAST(:genresJson AS jsonb)))
+            ORDER BY a.view_count + a.review_count DESC
+            LIMIT :size
+            """, nativeQuery = true)
+    List<Long> findPopularIdsByGenres(@Param("genresJson") String genresJson, @Param("size") int size);
 }
