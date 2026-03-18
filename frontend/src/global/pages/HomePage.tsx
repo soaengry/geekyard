@@ -1,6 +1,7 @@
 import { FC, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../domain/auth/store/useAuthStore'
+import { RecommendationSection } from '../../domain/anime'
 import FeedForm from '../../domain/feed/components/FeedForm'
 import FeedList from '../../domain/feed/components/FeedList'
 
@@ -33,9 +34,12 @@ const HomePage: FC = () => {
           </div>
         </div>
       ) : (
-        <div className="feed-form-wrapper mb-6">
-          <FeedForm onCreated={() => setRefreshKey((k) => k + 1)} />
-        </div>
+        <>
+          <RecommendationSection />
+          <div className="feed-form-wrapper mb-6">
+            <FeedForm onCreated={() => setRefreshKey((k) => k + 1)} />
+          </div>
+        </>
       )}
 
       <FeedList refreshKey={refreshKey} />

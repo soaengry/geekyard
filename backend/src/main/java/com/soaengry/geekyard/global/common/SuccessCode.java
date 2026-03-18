@@ -38,7 +38,10 @@ public enum SuccessCode {
     ANIME_COLLECTION_DETAIL(200, "애니메이션 컬렉션 상세 정보를 조회했습니다."),
     ANIME_COLLECTION_CREATED(201, "애니메이션 컬렉션이 생성되었습니다."),
     SIMILAR_ANIME_LIST(200, "비슷한 애니메이션을 조회했습니다."),
-    CHAT_MESSAGES(200, "채팅 메시지를 조회했습니다.");
+    CHAT_MESSAGES(200, "채팅 메시지를 조회했습니다."),
+    GENRE_PREFERENCES_SAVED(200, "장르 선호도가 저장되었습니다."),
+    GENRE_PREFERENCES(200, "장르 선호도를 조회했습니다."),
+    RECOMMENDATION_LIST(200, "추천 목록을 조회했습니다.");
 
     private final int code;
     private final String message;
