@@ -174,7 +174,7 @@ const MobileFilterDrawer: FC<MobileFilterDrawerProps> = ({
         </div>
 
         {/* Accordion list */}
-        <div className="drawer-body flex-1 overflow-y-auto custom-scrollbar">
+        <div className="drawer-body flex-1 overflow-y-auto hover-scrollbar">
           <AccordionSection
             title="장르"
             items={availableGenres}
