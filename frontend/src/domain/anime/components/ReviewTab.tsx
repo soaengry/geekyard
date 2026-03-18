@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
@@ -52,6 +52,8 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
   const [showForm, setShowForm] = useState(false);
   const [editingReview, setEditingReview] = useState<ReviewResponse | null>(
     null,
@@ -98,7 +100,8 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
     fetchInitialData();
   }, [fetchInitialData]);
 
-  const handleLoadMore = async () => {
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
       const nextPage = page + 1;
@@ -115,7 +118,22 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
     } finally {
       setLoadingMore(false);
     }
-  };
+  }, [animeId, page, loadingMore, hasMore]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !hasMore || loadingMore || loading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore();
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loading, loadMore]);
 
   const openCreateForm = () => {
     setEditingReview(null);
@@ -318,15 +336,15 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
         </div>
       )}
 
-      {/* Load more */}
+      {/* Infinite scroll sentinel */}
       {hasMore && (
-        <button
-          onClick={handleLoadMore}
-          disabled={loadingMore}
-          className="load-more-btn w-full py-2.5 text-sm rounded-lg bg-content/5 text-subtle hover:text-content hover:bg-content/10 transition-colors disabled:opacity-50"
-        >
-          {loadingMore ? "불러오는 중..." : "더보기"}
-        </button>
+        <div ref={sentinelRef} className="review-sentinel h-4">
+          {loadingMore && (
+            <p className="review-loading-more text-center text-subtle text-sm py-2">
+              불러오는 중...
+            </p>
+          )}
+        </div>
       )}
 
       {/* Empty state */}
