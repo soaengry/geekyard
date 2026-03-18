@@ -6,6 +6,7 @@ import type {
   AnimeListItem,
   CreateReviewRequest,
   PageResponse,
+  RecommendationItem,
   ReviewResponse,
   ReviewStatsResponse,
   SimilarAnimeItem,
@@ -124,6 +125,29 @@ export const getSimilarAnime = async (animeId: number): Promise<SimilarAnimeItem
     ANIME_ENDPOINTS.SIMILAR(animeId),
   )
   return response.data.data
+}
+
+export const getRecommendations = async (size = 10): Promise<RecommendationItem[]> => {
+  const response = await axiosInstance.get<{ data: RecommendationItem[] }>(
+    `${ANIME_ENDPOINTS.RECOMMENDATIONS}?size=${size}`,
+  )
+  return response.data.data
+}
+
+export const saveGenrePreferences = async (genres: string[]): Promise<void> => {
+  await axiosInstance.put(ANIME_ENDPOINTS.GENRE_PREFERENCES, { genres })
+}
+
+export const getGenrePreferences = async (): Promise<string[]> => {
+  const response = await axiosInstance.get<{ data: string[] }>(ANIME_ENDPOINTS.GENRE_PREFERENCES)
+  return response.data.data
+}
+
+export const checkGenrePreferencesExist = async (): Promise<boolean> => {
+  const response = await axiosInstance.get<{ data: { exists: boolean } }>(
+    ANIME_ENDPOINTS.GENRE_PREFERENCES_EXISTS,
+  )
+  return response.data.data.exists
 }
 
 export const toggleReviewBookmark = async (

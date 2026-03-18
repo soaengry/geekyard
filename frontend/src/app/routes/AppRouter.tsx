@@ -16,7 +16,7 @@ import {
   DeleteAccountPage,
   UserProfilePage,
 } from '../../domain/user/pages'
-import { AnimeListPage, AnimeDetailPage } from '../../domain/anime'
+import { AnimeListPage, AnimeDetailPage, GenreSelectionPage } from '../../domain/anime'
 import { CollectionListPage, CollectionDetailPage } from '../../domain/animelist'
 import ProtectedRoute from './ProtectedRoute'
 
@@ -37,6 +37,7 @@ const AppRouter: FC = () => {
           <Route path="/collections" element={<CollectionListPage />} />
           <Route path="/collections/:id" element={<CollectionDetailPage />} />
           <Route element={<ProtectedRoute />}>
+            <Route path="/genre-selection" element={<GenreSelectionPage />} />
             <Route path="/me" element={<MyPage />} />
             <Route path="/me/edit" element={<EditProfilePage />} />
             <Route path="/me/password" element={<ChangePasswordPage />} />
