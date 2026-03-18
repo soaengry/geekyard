@@ -1,25 +1,25 @@
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
 :root {
-  --primary:    162 82 194;   /* #A252C2 */
-  --secondary:  245 166 35;   /* #F5A623 */
-  --accent:     74 144 226;   /* #4A90E2 */
-  --background: 253 253 254;  /* #FDFDFE */
-  --surface:    255 255 255;  /* #FFFFFF */
-  --content:    44 44 44;     /* #2C2C2C */
-  --subtle:     110 110 110;  /* #6E6E6E */
-  --success:    39 174 96;    /* #27AE60 */
-  --error:      231 76 60;    /* #E74C3C */
+  --primary: 162 82 194; /* #A252C2 */
+  --secondary: 245 166 35; /* #F5A623 */
+  --accent: 74 144 226; /* #4A90E2 */
+  --background: 253 253 254; /* #FDFDFE */
+  --surface: 255 255 255; /* #FFFFFF */
+  --content: 44 44 44; /* #2C2C2C */
+  --subtle: 110 110 110; /* #6E6E6E */
+  --success: 39 174 96; /* #27AE60 */
+  --error: 231 76 60; /* #E74C3C */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: 18 18 18;    /* #121212 */
-    --surface:    30 30 30;    /* #1E1E1E */
-    --content:    245 245 245; /* #F5F5F5 */
-    --subtle:     176 176 176; /* #B0B0B0 */
-    --success:    46 204 113;  /* #2ECC71 */
-    --error:      255 107 107; /* #FF6B6B */
+    --background: 18 18 18; /* #121212 */
+    --surface: 30 30 30; /* #1E1E1E */
+    --content: 245 245 245; /* #F5F5F5 */
+    --subtle: 176 176 176; /* #B0B0B0 */
+    --success: 46 204 113; /* #2ECC71 */
+    --error: 255 107 107; /* #FF6B6B */
   }
 }
 
@@ -28,7 +28,12 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family:
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
   background-color: rgb(var(--background));
   color: rgb(var(--content));
 }
@@ -38,7 +43,7 @@ body {
   border-radius: 12px !important;
   padding: 14px 16px !important;
   min-height: auto !important;
-  font-family: 'Pretendard', sans-serif !important;
+  font-family: "Pretendard", sans-serif !important;
   font-size: 14px !important;
   font-weight: 500 !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
@@ -91,17 +96,47 @@ body {
   }
 }
 
-/* ── Custom Scrollbar ─────────────────────────────── */
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(var(--subtle), 0.3); border-radius: 9999px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(var(--subtle), 0.5); }
-
-.hover-scrollbar::-webkit-scrollbar-thumb { background: transparent; }
-.hover-scrollbar:hover::-webkit-scrollbar-thumb { background: rgba(var(--subtle), 0.3); }
-.hover-scrollbar:hover::-webkit-scrollbar-thumb:hover { background: rgba(var(--subtle), 0.5); }
+/* ── Global Scrollbar ─────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+}
+::-webkit-scrollbar-track {
+  background: rgb(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--subtle), 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--subtle), 0.5);
+}
 
 /* Firefox */
-.custom-scrollbar { scrollbar-width: thin; scrollbar-color: rgba(var(--subtle), 0.3) transparent; }
-.hover-scrollbar { scrollbar-width: none; }
-.hover-scrollbar:hover { scrollbar-width: thin; scrollbar-color: rgba(var(--subtle), 0.3) transparent; }
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--subtle), 0.3) rgb(var(--background));
+}
+
+.hover-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+.hover-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: rgba(var(--subtle), 0.3);
+}
+.hover-scrollbar:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--subtle), 0.5);
+}
+
+/* Firefox */
+.hover-scrollbar {
+  scrollbar-width: none;
+}
+.hover-scrollbar:hover {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--subtle), 0.3) rgb(var(--background));
+}
