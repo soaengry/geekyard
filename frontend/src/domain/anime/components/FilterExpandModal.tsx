@@ -48,7 +48,7 @@ const FilterExpandModal: FC<FilterExpandModalProps> = ({
         </div>
 
         {/* List */}
-        <div className="filter-expand-list flex-1 overflow-y-auto p-5 space-y-0.5 custom-scrollbar">
+        <div className="filter-expand-list flex-1 overflow-y-auto hover-scrollbar p-5 space-y-0.5">
           {items.map((item) => (
             <CheckItem
               key={item}
