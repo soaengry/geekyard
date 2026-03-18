@@ -1,0 +1,6 @@
+python-dotenv
+numpy
+psycopg2-binary
+scikit-learn
+scipy
+requests
