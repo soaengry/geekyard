@@ -7,13 +7,10 @@ import com.soaengry.geekyard.domain.anime.dto.response.AnimeDetailResponse;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeFilterResponse;
 import com.soaengry.geekyard.domain.anime.dto.response.AnimeListItemResponse;
 import com.soaengry.geekyard.domain.anime.dto.response.SimilarAnimeResponse;
-import com.soaengry.geekyard.domain.anime.entity.Anime;
+import com.soaengry.geekyard.domain.anime.entity.*;
 import com.soaengry.geekyard.domain.anime.exception.AnimeErrorCode;
 import com.soaengry.geekyard.domain.anime.exception.AnimeException;
-import com.soaengry.geekyard.domain.anime.repository.AnimeMetadataRepository;
-import com.soaengry.geekyard.domain.anime.repository.AnimeRepository;
-import com.soaengry.geekyard.domain.anime.repository.AnimeSimilarRepository;
-import com.soaengry.geekyard.domain.anime.repository.AnimeWatchRepository;
+import com.soaengry.geekyard.domain.anime.repository.*;
 import com.soaengry.geekyard.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,15 +31,17 @@ import java.util.stream.Collectors;
 public class AnimeService {
 
     private final AnimeRepository animeRepository;
-    private final AnimeMetadataRepository animeMetadataRepository;
     private final AnimeWatchRepository animeWatchRepository;
     private final AnimeSimilarRepository animeSimilarRepository;
     private final ObjectMapper objectMapper;
+    private final AnimeGenreRepository animeGenreRepository;
+    private final AnimeTagRepository animeTagRepository;
+    private final AnimeYearRepository animeYearRepository;
 
     public AnimeFilterResponse getAnimeFilter() {
-        List<String> genres = animeMetadataRepository.findDistinctGenres();
-        List<String> tags = animeMetadataRepository.findDistinctTags();
-        List<String> years = animeRepository.findDistinctAirYearQuartersDesc();
+        List<AnimeGenre> genres = animeGenreRepository.findAll();
+        List<AnimeTag> tags = animeTagRepository.findAll();
+        List<AnimeYear> years = animeYearRepository.findAll();
         return AnimeFilterResponse.from(genres, tags, years);
     }
 
