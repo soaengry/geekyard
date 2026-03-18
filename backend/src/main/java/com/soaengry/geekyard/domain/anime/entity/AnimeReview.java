@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import static lombok.AccessLevel.PROTECTED;
 
@@ -44,6 +45,8 @@ public class AnimeReview extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer likeCount = 0;
 
+    private LocalDateTime deletedAt;
+
     @Builder
     private AnimeReview(Anime anime, User user, Long externalUserId, String externalUsername,
                         BigDecimal score, String content) {
@@ -72,6 +75,14 @@ public class AnimeReview extends BaseTimeEntity {
     public void update(BigDecimal score, String content) {
         if (score != null) this.score = score;
         if (content != null) this.content = content;
+    }
+
+    public void softDelete() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public void restore() {
+        this.deletedAt = null;
     }
 
 }
