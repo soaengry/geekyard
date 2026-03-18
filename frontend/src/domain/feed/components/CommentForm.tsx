@@ -1,30 +1,30 @@
-import { FC, useState } from 'react'
+import { FC, useState } from "react";
 
 interface CommentFormProps {
-  onSubmit: (content: string) => void
-  submitting?: boolean
+  onSubmit: (content: string) => void;
+  submitting?: boolean;
 }
 
 const CommentForm: FC<CommentFormProps> = ({ onSubmit, submitting }) => {
-  const [content, setContent] = useState('')
+  const [content, setContent] = useState("");
 
   const handleSubmit = () => {
-    const trimmed = content.trim()
-    if (!trimmed) return
-    onSubmit(trimmed)
-    setContent('')
-  }
+    const trimmed = content.trim();
+    if (!trimmed) return;
+    onSubmit(trimmed);
+    setContent("");
+  };
 
   return (
-    <div className="comment-form flex gap-2">
+    <div className="comment-form flex gap-2 mb-4">
       <input
         type="text"
         value={content}
         onChange={(e) => setContent(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            handleSubmit()
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit();
           }
         }}
         placeholder="댓글을 입력하세요..."
@@ -35,10 +35,10 @@ const CommentForm: FC<CommentFormProps> = ({ onSubmit, submitting }) => {
         disabled={submitting || !content.trim()}
         className="comment-submit-btn px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
       >
-        {submitting ? '...' : '등록'}
+        {submitting ? "..." : "등록"}
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default CommentForm
+export default CommentForm;
