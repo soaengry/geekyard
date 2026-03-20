@@ -1,6 +1,5 @@
 package com.soaengry.geekyard.domain.user.controller;
 
-import com.soaengry.geekyard.domain.anime.dto.response.ReviewResponse;
 import com.soaengry.geekyard.domain.feed.dto.response.CommentResponse;
 import com.soaengry.geekyard.domain.feed.dto.response.FeedResponse;
 import com.soaengry.geekyard.domain.user.dto.request.RecoverAccountRequest;
@@ -114,23 +113,13 @@ public class UserController {
         return userActivityService.getMyComments(user, PageRequestFactory.of(page, size));
     }
 
-    @GetMapping("/me/liked-reviews")
+    @GetMapping("/me/image-feeds")
     @ApiSuccessCode(SuccessCode.OK)
-    public Page<ReviewResponse> getLikedReviews(
+    public Page<FeedResponse> getMyImageFeeds(
             @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return userActivityService.getLikedReviews(user, PageRequestFactory.of(page, size));
-    }
-
-    @GetMapping("/me/bookmarked-reviews")
-    @ApiSuccessCode(SuccessCode.OK)
-    public Page<ReviewResponse> getBookmarkedReviews(
-            @AuthenticationPrincipal User user,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        return userActivityService.getBookmarkedReviews(user, PageRequestFactory.of(page, size));
+        return userActivityService.getMyImageFeeds(user, PageRequestFactory.of(page, size));
     }
 }
