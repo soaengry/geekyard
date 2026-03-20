@@ -15,6 +15,8 @@ import {
   ChangePasswordPage,
   DeleteAccountPage,
   UserProfilePage,
+  WatchedCalendarPage,
+  WatchedStatisticsPage,
 } from '../../domain/user/pages'
 import { AnimeListPage, AnimeDetailPage, GenreSelectionPage } from '../../domain/anime'
 import { CollectionListPage, CollectionDetailPage } from '../../domain/animelist'
@@ -42,6 +44,8 @@ const AppRouter: FC = () => {
             <Route path="/me/edit" element={<EditProfilePage />} />
             <Route path="/me/password" element={<ChangePasswordPage />} />
             <Route path="/me/delete" element={<DeleteAccountPage />} />
+            <Route path="/me/watched/calendar" element={<WatchedCalendarPage />} />
+            <Route path="/me/watched/statistics" element={<WatchedStatisticsPage />} />
           </Route>
         </Route>
       </Routes>

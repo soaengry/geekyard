@@ -144,6 +144,20 @@ const MyPage: FC = () => {
         >
           프로필 수정
         </Link>
+        <div className="mypage-watched-links flex gap-3">
+          <Link
+            to="/me/watched/calendar"
+            className="flex-1 text-center bg-surface text-content border border-content/20 rounded-md py-2 hover:bg-background transition-colors"
+          >
+            본 작품 캘린더
+          </Link>
+          <Link
+            to="/me/watched/statistics"
+            className="flex-1 text-center bg-surface text-content border border-content/20 rounded-md py-2 hover:bg-background transition-colors"
+          >
+            본 작품 통계
+          </Link>
+        </div>
         {user.authProvider === null && (
           <Link
             to="/me/password"
