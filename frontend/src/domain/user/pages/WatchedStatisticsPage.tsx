@@ -1,4 +1,5 @@
 import { FC, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import {
   BarChart,
@@ -23,6 +24,7 @@ const CHART_COLORS = [
 ]
 
 const WatchedStatisticsPage: FC = () => {
+  const navigate = useNavigate()
   const [stats, setStats] = useState<WatchedStatistics | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -43,9 +45,15 @@ const WatchedStatisticsPage: FC = () => {
   if (loading) {
     return (
       <div className="watched-statistics-page max-w-2xl mx-auto">
-        <h1 className="watched-statistics-title text-2xl font-bold text-content mb-6">
-          본 작품 통계
-        </h1>
+        <div className="watched-statistics-title flex items-center gap-2 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="watched-statistics-back text-subtle hover:text-content transition-colors"
+          >
+            &lt;
+          </button>
+          <h1 className="text-2xl font-bold text-content">본 작품 통계</h1>
+        </div>
         <div className="watched-statistics-loading space-y-4 animate-pulse">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-48 rounded-xl bg-content/10" />
@@ -62,9 +70,15 @@ const WatchedStatisticsPage: FC = () => {
   if (!hasData) {
     return (
       <div className="watched-statistics-page max-w-2xl mx-auto">
-        <h1 className="watched-statistics-title text-2xl font-bold text-content mb-6">
-          본 작품 통계
-        </h1>
+        <div className="watched-statistics-title flex items-center gap-2 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="watched-statistics-back text-subtle hover:text-content transition-colors"
+          >
+            &lt;
+          </button>
+          <h1 className="text-2xl font-bold text-content">본 작품 통계</h1>
+        </div>
         <p className="watched-statistics-empty text-center text-subtle text-sm py-12">
           아직 시청 기록이 없습니다.
         </p>
