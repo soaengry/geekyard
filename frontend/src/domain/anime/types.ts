@@ -118,3 +118,32 @@ export interface UpdateReviewRequest {
   score?: number
   content?: string
 }
+
+export interface WatchedCalendarItem {
+  date: string
+  animeId: number
+  animeName: string
+  animeImg: string | null
+  score: number | null
+}
+
+export interface MonthlyCount {
+  month: string
+  count: number
+}
+
+export interface GenreRatio {
+  genre: string
+  count: number
+}
+
+export interface GenreAvgRating {
+  genre: string
+  avgRating: number
+}
+
+export interface WatchedStatistics {
+  monthlyCounts: MonthlyCount[]
+  genreRatios: GenreRatio[]
+  genreAvgRatings: GenreAvgRating[]
+}
