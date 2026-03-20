@@ -32,4 +32,7 @@ public interface AnimeReviewRepository extends JpaRepository<AnimeReview, Long> 
     @Modifying
     @Query("UPDATE AnimeReview r SET r.likeCount = r.likeCount - 1 WHERE r.id = :reviewId AND r.likeCount > 0")
     void decrementLikeCount(@Param("reviewId") Long reviewId);
+
+    @Query("SELECT r FROM AnimeReview r WHERE r.user = :user AND r.anime.id IN :animeIds")
+    List<AnimeReview> findByUserAndAnimeIdIn(@Param("user") User user, @Param("animeIds") List<Long> animeIds);
 }
