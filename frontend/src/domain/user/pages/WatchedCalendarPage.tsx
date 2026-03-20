@@ -1,4 +1,5 @@
-import { FC, useCallback, useEffect, useMemo, useState } from 'react'
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { getWatchedCalendar } from '../api/watchedApi'
 import WatchedDateModal from '../components/WatchedDateModal'
@@ -6,13 +7,19 @@ import type { WatchedCalendarItem } from '../../anime/types'
 
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const
 
+const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const
+
 const WatchedCalendarPage: FC = () => {
+  const navigate = useNavigate()
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
   const [items, setItems] = useState<WatchedCalendarItem[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [showPicker, setShowPicker] = useState(false)
+  const [pickerYear, setPickerYear] = useState(year)
+  const pickerRef = useRef<HTMLDivElement>(null)
 
   const fetchCalendar = useCallback(async (y: number, m: number) => {
     setLoading(true)
@@ -29,6 +36,24 @@ const WatchedCalendarPage: FC = () => {
   useEffect(() => {
     fetchCalendar(year, month)
   }, [year, month, fetchCalendar])
+
+  // Close picker on outside click
+  useEffect(() => {
+    if (!showPicker) return
+    const handleClick = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowPicker(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [showPicker])
+
+  const handlePickMonth = (m: number) => {
+    setYear(pickerYear)
+    setMonth(m)
+    setShowPicker(false)
+  }
 
   const handlePrev = () => {
     if (month === 1) {
@@ -77,9 +102,15 @@ const WatchedCalendarPage: FC = () => {
 
   return (
     <div className="watched-calendar-page max-w-2xl mx-auto">
-      <h1 className="watched-calendar-title text-2xl font-bold text-content mb-6">
-        본 작품 캘린더
-      </h1>
+      <div className="watched-calendar-title flex items-center gap-2 mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="watched-calendar-back text-subtle hover:text-content transition-colors"
+        >
+          &lt;
+        </button>
+        <h1 className="text-2xl font-bold text-content">본 작품 캘린더</h1>
+      </div>
 
       <div className="watched-calendar-nav flex items-center justify-between mb-4">
         <button
@@ -88,9 +119,48 @@ const WatchedCalendarPage: FC = () => {
         >
           ◀
         </button>
-        <span className="watched-calendar-month text-lg font-semibold text-content">
-          {year}년 {month}월
-        </span>
+        <div className="relative" ref={pickerRef}>
+          <button
+            onClick={() => { setPickerYear(year); setShowPicker(!showPicker) }}
+            className="watched-calendar-month text-lg font-semibold text-content hover:text-primary transition-colors"
+          >
+            {year}년 {month}월
+          </button>
+          {showPicker && (
+            <div className="watched-calendar-picker absolute top-full left-1/2 -translate-x-1/2 mt-2 z-20 bg-surface border border-content/10 rounded-xl shadow-lg p-3 w-56">
+              <div className="watched-calendar-picker-year flex items-center justify-between mb-2">
+                <button
+                  onClick={() => setPickerYear(pickerYear - 1)}
+                  className="text-subtle hover:text-content transition-colors px-1"
+                >
+                  ◀
+                </button>
+                <span className="text-sm font-semibold text-content">{pickerYear}년</span>
+                <button
+                  onClick={() => setPickerYear(pickerYear + 1)}
+                  className="text-subtle hover:text-content transition-colors px-1"
+                >
+                  ▶
+                </button>
+              </div>
+              <div className="watched-calendar-picker-months grid grid-cols-4 gap-1">
+                {MONTHS.map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => handlePickMonth(m)}
+                    className={`text-xs py-1.5 rounded-md transition-colors ${
+                      pickerYear === year && m === month
+                        ? 'bg-primary text-white'
+                        : 'text-content hover:bg-content/10'
+                    }`}
+                  >
+                    {m}월
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
         <button
           onClick={handleNext}
           className="watched-calendar-next p-2 text-subtle hover:text-content transition-colors"
