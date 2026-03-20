@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import EmailVerification from "../../auth/components/EmailVerification";
@@ -14,6 +14,7 @@ import { formatDate } from "../../../global/utils/formatDate";
 import type { FeedResponse, CommentResponse } from "../../feed/types";
 import type { PageResponse } from "../../anime/types";
 import FeedCard from "../../feed/components/FeedCard";
+import FeedModal from "../../feed/components/FeedModal";
 
 const TABS = [
   "내 피드",
@@ -35,6 +36,7 @@ const TAB_CONFIG: Record<TabType, { fetcher: (page: number) => Promise<PageRespo
 };
 
 const MyPage: FC = () => {
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
   const [activeTab, setActiveTab] = useState<TabType>("내 피드");
@@ -43,6 +45,7 @@ const MyPage: FC = () => {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedFeedId, setSelectedFeedId] = useState<number | null>(null);
 
   const fetchData = useCallback(
     async (tab: TabType, pageNum: number, append = false) => {
@@ -85,9 +88,15 @@ const MyPage: FC = () => {
 
   return (
     <div className="mypage max-w-2xl mx-auto">
-      <h1 className="mypage-title text-2xl font-bold text-content mb-6">
-        내 프로필
-      </h1>
+      <div className="mypage-title flex items-center gap-2 mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="mypage-back text-subtle hover:text-content transition-colors"
+        >
+          &lt;
+        </button>
+        <h1 className="text-2xl font-bold text-content">내 프로필</h1>
+      </div>
       <div className="mypage-profile bg-surface rounded-xl shadow-sm border border-content/10 p-6 mb-6">
         {user.profileImage && (
           <img
@@ -215,9 +224,10 @@ const MyPage: FC = () => {
             {tabType === "comment" &&
               (comments.length > 0 ? (
                 comments.map((comment) => (
-                  <div
+                  <button
                     key={comment.id}
-                    className="comment-item p-4 rounded-lg bg-surface border border-content/10"
+                    onClick={() => setSelectedFeedId(comment.feedId)}
+                    className="comment-item w-full text-left p-4 rounded-lg bg-surface border border-content/10 hover:bg-content/5 transition-colors"
                   >
                     <p className="text-sm text-content/80 whitespace-pre-line">
                       {comment.content}
@@ -225,7 +235,7 @@ const MyPage: FC = () => {
                     <p className="text-xs text-subtle mt-2">
                       {formatDate(comment.createdAt)}
                     </p>
-                  </div>
+                  </button>
                 ))
               ) : (
                 <p className="activity-empty text-center text-subtle text-sm py-8">
@@ -244,6 +254,13 @@ const MyPage: FC = () => {
           </div>
         )}
       </div>
+
+      {selectedFeedId !== null && (
+        <FeedModal
+          feedId={selectedFeedId}
+          onClose={() => setSelectedFeedId(null)}
+        />
+      )}
     </div>
   );
 };
