@@ -7,7 +7,7 @@ import type {
   LikeToggleResponse,
   BookmarkToggleResponse,
 } from '../types'
-import type { PageResponse, ReviewResponse } from '../../anime/types'
+import type { PageResponse } from '../../anime/types'
 
 const createPagedGetter = <T>(endpoint: string) => {
   return async (page = 0, size = 10): Promise<PageResponse<T>> => {
@@ -153,5 +153,4 @@ export const getMyFeeds = createPagedGetter<FeedResponse>(USER_ACTIVITY_ENDPOINT
 export const getLikedFeeds = createPagedGetter<FeedResponse>(USER_ACTIVITY_ENDPOINTS.LIKED_FEEDS)
 export const getBookmarkedFeeds = createPagedGetter<FeedResponse>(USER_ACTIVITY_ENDPOINTS.BOOKMARKED_FEEDS)
 export const getMyComments = createPagedGetter<CommentResponse>(USER_ACTIVITY_ENDPOINTS.MY_COMMENTS)
-export const getLikedReviews = createPagedGetter<ReviewResponse>(USER_ACTIVITY_ENDPOINTS.LIKED_REVIEWS)
-export const getBookmarkedReviews = createPagedGetter<ReviewResponse>(USER_ACTIVITY_ENDPOINTS.BOOKMARKED_REVIEWS)
+export const getMyImageFeeds = createPagedGetter<FeedResponse>(USER_ACTIVITY_ENDPOINTS.MY_IMAGE_FEEDS)

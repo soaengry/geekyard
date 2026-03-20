@@ -15,6 +15,5 @@ export const USER_ACTIVITY_ENDPOINTS = {
   LIKED_FEEDS: '/api/users/me/liked-feeds',
   BOOKMARKED_FEEDS: '/api/users/me/bookmarked-feeds',
   MY_COMMENTS: '/api/users/me/comments',
-  LIKED_REVIEWS: '/api/users/me/liked-reviews',
-  BOOKMARKED_REVIEWS: '/api/users/me/bookmarked-reviews',
+  MY_IMAGE_FEEDS: '/api/users/me/image-feeds',
 } as const

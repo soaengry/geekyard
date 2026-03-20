@@ -1,12 +1,11 @@
 import { FC, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAuthStore } from "../../auth/store/useAuthStore";
-import { toggleReviewLike, toggleReviewBookmark } from "../api/animeApi";
+import { toggleReviewLike } from "../api/animeApi";
 import { formatDate } from "../../../global/utils/formatDate";
 import type { ReviewResponse } from "../types";
 import StarRating from "./StarRating";
 import LikeButton from "../../feed/components/LikeButton";
-import BookmarkButton from "../../feed/components/BookmarkButton";
 
 interface ReviewCardProps {
   review: ReviewResponse;
@@ -25,13 +24,11 @@ const ReviewCard: FC<ReviewCardProps> = ({
   const [showConfirm, setShowConfirm] = useState(false);
   const [liked, setLiked] = useState(review.liked);
   const [likeCount, setLikeCount] = useState(review.likeCount);
-  const [bookmarked, setBookmarked] = useState(review.bookmarked);
 
   useEffect(() => {
     setLiked(review.liked);
     setLikeCount(review.likeCount);
-    setBookmarked(review.bookmarked);
-  }, [review.liked, review.likeCount, review.bookmarked]);
+  }, [review.liked, review.likeCount]);
 
   const handleLike = async () => {
     if (!isAuthenticated) {
@@ -44,19 +41,6 @@ const ReviewCard: FC<ReviewCardProps> = ({
       setLikeCount(result.likeCount);
     } catch {
       toast.error("좋아요 처리에 실패했습니다.");
-    }
-  };
-
-  const handleBookmark = async () => {
-    if (!isAuthenticated) {
-      toast.info("로그인이 필요합니다.");
-      return;
-    }
-    try {
-      const result = await toggleReviewBookmark(review.animeId, review.id);
-      setBookmarked(result.bookmarked);
-    } catch {
-      toast.error("북마크 처리에 실패했습니다.");
     }
   };
 
@@ -117,7 +101,6 @@ const ReviewCard: FC<ReviewCardProps> = ({
       <div className="review-footer flex items-center justify-between mt-3">
         <div className="review-interactions flex items-center gap-4">
           <LikeButton liked={liked} count={likeCount} onToggle={handleLike} />
-          <BookmarkButton bookmarked={bookmarked} onToggle={handleBookmark} />
         </div>
         <p className="review-date text-xs text-subtle">
           {formatDate(review.createdAt, {
