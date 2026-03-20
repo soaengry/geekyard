@@ -1,7 +1,6 @@
 package com.soaengry.geekyard.domain.anime.controller;
 
 import com.soaengry.geekyard.domain.anime.service.ReviewInteractionService;
-import com.soaengry.geekyard.global.common.dto.BookmarkResponse;
 import com.soaengry.geekyard.global.common.dto.LikeResponse;
 import com.soaengry.geekyard.domain.user.entity.User;
 import com.soaengry.geekyard.global.common.ApiSuccessCode;
@@ -25,15 +24,5 @@ public class ReviewInteractionController {
             @AuthenticationPrincipal User user
     ) {
         return reviewInteractionService.toggleLike(animeId, reviewId, user);
-    }
-
-    @PostMapping("/bookmark")
-    @ApiSuccessCode(SuccessCode.OK)
-    public BookmarkResponse toggleBookmark(
-            @PathVariable Long animeId,
-            @PathVariable Long reviewId,
-            @AuthenticationPrincipal User user
-    ) {
-        return reviewInteractionService.toggleBookmark(animeId, reviewId, user);
     }
 }

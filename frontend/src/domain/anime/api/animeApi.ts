@@ -150,12 +150,3 @@ export const checkGenrePreferencesExist = async (): Promise<boolean> => {
   return response.data.data.exists
 }
 
-export const toggleReviewBookmark = async (
-  animeId: number,
-  reviewId: number,
-): Promise<{ bookmarked: boolean }> => {
-  const response = await axiosInstance.post<{ data: { bookmarked: boolean } }>(
-    ANIME_ENDPOINTS.REVIEW_BOOKMARK(animeId, reviewId),
-  )
-  return response.data.data
-}
