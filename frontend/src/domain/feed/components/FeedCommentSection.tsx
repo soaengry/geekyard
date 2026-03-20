@@ -18,11 +18,13 @@ type CommentSort = 'LATEST' | 'POPULAR'
 interface FeedCommentSectionProps {
   feedId: number
   onCommentCountChange: (delta: number) => void
+  onCollapse?: () => void
 }
 
 const FeedCommentSection: FC<FeedCommentSectionProps> = ({
   feedId,
   onCommentCountChange,
+  onCollapse,
 }) => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const currentUser = useAuthStore((s) => s.user)
@@ -182,6 +184,15 @@ const FeedCommentSection: FC<FeedCommentSectionProps> = ({
               className="comment-load-more w-full py-2 text-sm text-subtle hover:text-content transition-colors"
             >
               댓글 더보기
+            </button>
+          )}
+
+          {onCollapse && (
+            <button
+              onClick={onCollapse}
+              className="comment-collapse w-full py-2 text-sm text-subtle hover:text-content transition-colors border-t border-content/10 mt-2"
+            >
+              댓글 접기
             </button>
           )}
         </>
