@@ -1,5 +1,4 @@
 import { FC, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { useAuthStore } from '../../auth/store/useAuthStore'
 import { toggleFeedLike, toggleFeedBookmark, deleteFeed } from '../api/feedApi'
@@ -10,6 +9,7 @@ import LikeButton from './LikeButton'
 import BookmarkButton from './BookmarkButton'
 import FeedCommentSection from './FeedCommentSection'
 import ImageLightbox from './ImageLightbox'
+import AnimeDetailModal from '../../anime/components/AnimeDetailModal'
 
 interface FeedCardProps {
   feed: FeedResponse
@@ -28,6 +28,7 @@ const FeedCard: FC<FeedCardProps> = ({ feed, onDelete, onUpdate }) => {
   const [showComments, setShowComments] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [animeModalId, setAnimeModalId] = useState<number | null>(null)
 
   useEffect(() => {
     setLiked(feed.liked)
@@ -106,12 +107,12 @@ const FeedCard: FC<FeedCardProps> = ({ feed, onDelete, onUpdate }) => {
           <div className="feed-info flex items-center gap-1.5 text-xs text-subtle">
             {feed.animeId && feed.animeName && (
               <>
-                <Link
-                  to={`/anime/${feed.animeId}`}
+                <button
+                  onClick={() => setAnimeModalId(feed.animeId)}
                   className="feed-anime-link hover:text-primary transition-colors truncate"
                 >
                   {feed.animeName}
-                </Link>
+                </button>
                 <span>·</span>
               </>
             )}
@@ -210,6 +211,7 @@ const FeedCard: FC<FeedCardProps> = ({ feed, onDelete, onUpdate }) => {
         <FeedCommentSection
           feedId={feed.id}
           onCommentCountChange={(delta) => setCommentCount((prev) => prev + delta)}
+          onCollapse={() => setShowComments(false)}
         />
       )}
 
@@ -219,6 +221,14 @@ const FeedCard: FC<FeedCardProps> = ({ feed, onDelete, onUpdate }) => {
           images={images}
           initialIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
+        />
+      )}
+
+      {/* Anime detail modal */}
+      {animeModalId !== null && (
+        <AnimeDetailModal
+          id={animeModalId}
+          onClose={() => setAnimeModalId(null)}
         />
       )}
     </div>
