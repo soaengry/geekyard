@@ -21,6 +21,11 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
 
     Page<Feed> findByUserOrderByCreatedAtDesc(User user, Pageable pageable);
 
+    @Query(value = "SELECT f.* FROM feeds f WHERE f.user_id = :userId AND f.image_urls IS NOT NULL AND jsonb_array_length(f.image_urls) > 0 ORDER BY f.created_at DESC",
+            countQuery = "SELECT COUNT(*) FROM feeds f WHERE f.user_id = :userId AND f.image_urls IS NOT NULL AND jsonb_array_length(f.image_urls) > 0",
+            nativeQuery = true)
+    Page<Feed> findByUserAndImageUrlsNotEmpty(@Param("userId") Long userId, Pageable pageable);
+
     @Modifying
     @Query("UPDATE Feed f SET f.likeCount = f.likeCount + 1 WHERE f.id = :feedId")
     void incrementLikeCount(@Param("feedId") Long feedId);
