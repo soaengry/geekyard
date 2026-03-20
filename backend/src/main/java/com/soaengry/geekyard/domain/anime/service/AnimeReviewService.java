@@ -10,7 +10,6 @@ import com.soaengry.geekyard.domain.anime.exception.AnimeErrorCode;
 import com.soaengry.geekyard.domain.anime.exception.AnimeException;
 import com.soaengry.geekyard.domain.anime.repository.AnimeRepository;
 import com.soaengry.geekyard.domain.anime.repository.AnimeReviewRepository;
-import com.soaengry.geekyard.domain.anime.repository.ReviewBookmarkRepository;
 import com.soaengry.geekyard.domain.anime.repository.ReviewLikeRepository;
 import com.soaengry.geekyard.domain.user.entity.User;
 import com.soaengry.geekyard.global.util.NicknameGenerator;
@@ -34,7 +33,6 @@ public class AnimeReviewService {
     private final AnimeReviewRepository animeReviewRepository;
     private final AnimeRepository animeRepository;
     private final ReviewLikeRepository reviewLikeRepository;
-    private final ReviewBookmarkRepository reviewBookmarkRepository;
     private final ReviewFinder reviewFinder;
     private final AnimeWatchService animeWatchService;
 
@@ -45,11 +43,8 @@ public class AnimeReviewService {
         Set<Long> likedIds = user != null
                 ? Set.copyOf(reviewLikeRepository.findLikedReviewIdsByUserAndReviewIds(user, reviewIds))
                 : Collections.emptySet();
-        Set<Long> bookmarkedIds = user != null
-                ? Set.copyOf(reviewBookmarkRepository.findBookmarkedReviewIdsByUserAndReviewIds(user, reviewIds))
-                : Collections.emptySet();
 
-        return reviews.map(review -> toResponse(review, likedIds.contains(review.getId()), bookmarkedIds.contains(review.getId())));
+        return reviews.map(review -> toResponse(review, likedIds.contains(review.getId())));
     }
 
     public ReviewStatsResponse getReviewStats(Long animeId) {
@@ -106,18 +101,18 @@ public class AnimeReviewService {
     }
 
     private ReviewResponse toResponse(AnimeReview review) {
-        return toResponse(review, false, false);
+        return toResponse(review, false);
     }
 
-    private ReviewResponse toResponse(AnimeReview review, boolean liked, boolean bookmarked) {
+    private ReviewResponse toResponse(AnimeReview review, boolean liked) {
         if (review.isSiteUser()) {
             User user = review.getUser();
-            return ReviewResponse.from(review, user.getNickname(), user.getProfileImage(), liked, bookmarked);
+            return ReviewResponse.from(review, user.getNickname(), user.getProfileImage(), liked);
         }
         String nickname = review.getExternalUsername() != null
                 ? review.getExternalUsername()
                 : NicknameGenerator.generate(review.getExternalUserId());
-        return ReviewResponse.from(review, nickname, null, liked, bookmarked);
+        return ReviewResponse.from(review, nickname, null, liked);
     }
 
     private void validateOwner(AnimeReview review, User user) {
