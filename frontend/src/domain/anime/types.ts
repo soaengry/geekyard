@@ -75,7 +75,6 @@ export interface ReviewResponse {
   content: string
   likeCount: number
   liked: boolean
-  bookmarked: boolean
   createdAt: string
   updatedAt: string
 }
