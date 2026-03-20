@@ -16,17 +16,16 @@ public record ReviewResponse(
         String content,
         Integer likeCount,
         boolean liked,
-        boolean bookmarked,
         boolean isSiteUser,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
     public static ReviewResponse from(AnimeReview review, String nickname, String profileImage) {
-        return from(review, nickname, profileImage, false, false);
+        return from(review, nickname, profileImage, false);
     }
 
     public static ReviewResponse from(AnimeReview review, String nickname, String profileImage,
-                                       boolean liked, boolean bookmarked) {
+                                       boolean liked) {
         boolean siteUser = review.isSiteUser();
         Long userId = siteUser ? review.getUser().getId() : review.getExternalUserId();
         return new ReviewResponse(
@@ -40,7 +39,6 @@ public record ReviewResponse(
                 review.getContent(),
                 review.getLikeCount(),
                 liked,
-                bookmarked,
                 siteUser,
                 review.getCreatedAt(),
                 review.getUpdatedAt()

@@ -8,33 +8,30 @@ import {
   getLikedFeeds,
   getBookmarkedFeeds,
   getMyComments,
-  getLikedReviews,
-  getBookmarkedReviews,
+  getMyImageFeeds,
 } from "../../feed/api/feedApi";
 import { formatDate } from "../../../global/utils/formatDate";
 import type { FeedResponse, CommentResponse } from "../../feed/types";
-import type { ReviewResponse, PageResponse } from "../../anime/types";
+import type { PageResponse } from "../../anime/types";
 import FeedCard from "../../feed/components/FeedCard";
 
 const TABS = [
   "내 피드",
-  "좋아요 피드",
-  "북마크 피드",
   "내 댓글",
-  "좋아요 리뷰",
-  "북마크 리뷰",
+  "좋아요",
+  "북마크",
+  "갤러리",
 ] as const;
 type TabType = (typeof TABS)[number];
 
-type DataType = "feed" | "comment" | "review";
+type DataType = "feed" | "comment";
 
-const TAB_CONFIG: Record<TabType, { fetcher: (page: number) => Promise<PageResponse<FeedResponse | CommentResponse | ReviewResponse>>; type: DataType }> = {
+const TAB_CONFIG: Record<TabType, { fetcher: (page: number) => Promise<PageResponse<FeedResponse | CommentResponse>>; type: DataType }> = {
   "내 피드": { fetcher: getMyFeeds, type: "feed" },
-  "좋아요 피드": { fetcher: getLikedFeeds, type: "feed" },
-  "북마크 피드": { fetcher: getBookmarkedFeeds, type: "feed" },
   "내 댓글": { fetcher: getMyComments, type: "comment" },
-  "좋아요 리뷰": { fetcher: getLikedReviews, type: "review" },
-  "북마크 리뷰": { fetcher: getBookmarkedReviews, type: "review" },
+  "좋아요": { fetcher: getLikedFeeds, type: "feed" },
+  "북마크": { fetcher: getBookmarkedFeeds, type: "feed" },
+  "갤러리": { fetcher: getMyImageFeeds, type: "feed" },
 };
 
 const MyPage: FC = () => {
@@ -43,7 +40,6 @@ const MyPage: FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("내 피드");
   const [feeds, setFeeds] = useState<FeedResponse[]>([]);
   const [comments, setComments] = useState<CommentResponse[]>([]);
-  const [reviews, setReviews] = useState<ReviewResponse[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -58,10 +54,8 @@ const MyPage: FC = () => {
 
         if (config.type === "feed") {
           setFeeds((prev) => append ? [...prev, ...data.content as FeedResponse[]] : data.content as FeedResponse[]);
-        } else if (config.type === "comment") {
-          setComments((prev) => append ? [...prev, ...data.content as CommentResponse[]] : data.content as CommentResponse[]);
         } else {
-          setReviews((prev) => append ? [...prev, ...data.content as ReviewResponse[]] : data.content as ReviewResponse[]);
+          setComments((prev) => append ? [...prev, ...data.content as CommentResponse[]] : data.content as CommentResponse[]);
         }
         updateHasMore();
         setPage(pageNum);
@@ -77,7 +71,6 @@ const MyPage: FC = () => {
   useEffect(() => {
     setFeeds([]);
     setComments([]);
-    setReviews([]);
     setPage(0);
     fetchData(activeTab, 0);
   }, [activeTab, fetchData]);
@@ -217,38 +210,6 @@ const MyPage: FC = () => {
                     </p>
                     <p className="text-xs text-subtle mt-2">
                       {formatDate(comment.createdAt)}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="activity-empty text-center text-subtle text-sm py-8">
-                  데이터가 없습니다.
-                </p>
-              ))}
-
-            {tabType === "review" &&
-              (reviews.length > 0 ? (
-                reviews.map((review) => (
-                  <div
-                    key={review.id}
-                    className="review-item p-4 rounded-lg bg-surface border border-content/10"
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <Link
-                        to={`/anime/${review.animeId}`}
-                        className="text-sm font-medium text-primary hover:underline"
-                      >
-                        {review.animeName}
-                      </Link>
-                      <span className="text-xs text-subtle">
-                        ★ {review.score.toFixed(1)}
-                      </span>
-                    </div>
-                    <p className="text-sm text-content/80 whitespace-pre-line">
-                      {review.content}
-                    </p>
-                    <p className="text-xs text-subtle mt-2">
-                      {formatDate(review.createdAt)}
                     </p>
                   </div>
                 ))
