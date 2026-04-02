@@ -14,8 +14,8 @@ import com.soaengry.geekyard.domain.feed.repository.FeedCommentRepository;
 import com.soaengry.geekyard.domain.feed.repository.FeedRepository;
 import com.soaengry.geekyard.domain.user.entity.User;
 import com.soaengry.geekyard.global.common.dto.LikeResponse;
+import com.soaengry.geekyard.global.util.ToggleHelper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -78,21 +78,14 @@ public class FeedCommentService {
     @Transactional
     public LikeResponse toggleCommentLike(Long feedId, Long commentId, User user) {
         FeedComment comment = findCommentOrThrow(commentId, feedId);
-        return feedCommentLikeRepository.findByCommentAndUser(comment, user)
-                .map(like -> {
-                    feedCommentLikeRepository.delete(like);
-                    feedCommentRepository.decrementLikeCount(comment.getId());
-                    return new LikeResponse(false, comment.getLikeCount() - 1);
-                })
-                .orElseGet(() -> {
-                    try {
-                        feedCommentLikeRepository.save(FeedCommentLike.create(comment, user));
-                    } catch (DataIntegrityViolationException e) {
-                        return new LikeResponse(true, comment.getLikeCount());
-                    }
-                    feedCommentRepository.incrementLikeCount(comment.getId());
-                    return new LikeResponse(true, comment.getLikeCount() + 1);
-                });
+        return ToggleHelper.toggleLike(
+                () -> feedCommentLikeRepository.findByCommentAndUser(comment, user),
+                feedCommentLikeRepository::delete,
+                () -> feedCommentLikeRepository.save(FeedCommentLike.create(comment, user)),
+                () -> feedCommentRepository.decrementLikeCount(comment.getId()),
+                () -> feedCommentRepository.incrementLikeCount(comment.getId()),
+                comment.getLikeCount()
+        );
     }
 
     private Set<Long> getLikedCommentIds(List<FeedComment> comments, User user) {

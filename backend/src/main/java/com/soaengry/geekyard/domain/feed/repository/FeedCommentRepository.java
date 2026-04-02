@@ -24,11 +24,11 @@ public interface FeedCommentRepository extends JpaRepository<FeedComment, Long> 
             countQuery = "SELECT COUNT(c) FROM FeedComment c WHERE c.user = :user")
     Page<FeedComment> findByUserWithFeed(@Param("user") User user, Pageable pageable);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE FeedComment c SET c.likeCount = c.likeCount + 1 WHERE c.id = :commentId")
     void incrementLikeCount(@Param("commentId") Long commentId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE FeedComment c SET c.likeCount = c.likeCount - 1 WHERE c.id = :commentId AND c.likeCount > 0")
     void decrementLikeCount(@Param("commentId") Long commentId);
 
