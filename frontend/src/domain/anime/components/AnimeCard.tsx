@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import { FC, memo } from 'react'
 import type { AnimeListItem } from '../types'
 
 interface AnimeCardProps {
@@ -6,7 +6,7 @@ interface AnimeCardProps {
   onSelect: (id: number) => void
 }
 
-const AnimeCard: FC<AnimeCardProps> = ({ anime, onSelect }) => {
+const AnimeCard: FC<AnimeCardProps> = memo(({ anime, onSelect }) => {
   return (
     <div
       onClick={() => onSelect(anime.id)}
@@ -17,6 +17,7 @@ const AnimeCard: FC<AnimeCardProps> = ({ anime, onSelect }) => {
           <img
             src={anime.img}
             alt={anime.name}
+            loading="lazy"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
@@ -55,6 +56,7 @@ const AnimeCard: FC<AnimeCardProps> = ({ anime, onSelect }) => {
       </div>
     </div>
   )
-}
+})
+
 
 export default AnimeCard
