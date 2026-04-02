@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, memo, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import { toggleReviewLike } from "../api/animeApi";
@@ -14,7 +14,7 @@ interface ReviewCardProps {
   onDelete: () => void;
 }
 
-const ReviewCard: FC<ReviewCardProps> = ({
+const ReviewCard: FC<ReviewCardProps> = memo(({
   review,
   isOwner,
   onEdit,
@@ -28,7 +28,7 @@ const ReviewCard: FC<ReviewCardProps> = ({
   useEffect(() => {
     setLiked(review.liked);
     setLikeCount(review.likeCount);
-  }, [review.liked, review.likeCount]);
+  }, [review.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLike = async () => {
     if (!isAuthenticated) {
@@ -57,6 +57,7 @@ const ReviewCard: FC<ReviewCardProps> = ({
             <img
               src={review.profileImage}
               alt={review.nickname}
+              loading="lazy"
               className="w-full h-full object-cover"
             />
           ) : (
@@ -135,6 +136,7 @@ const ReviewCard: FC<ReviewCardProps> = ({
       )}
     </div>
   );
-};
+})
+
 
 export default ReviewCard;
