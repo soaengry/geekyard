@@ -21,17 +21,25 @@ public interface AnimeRepository extends JpaRepository<Anime, Long>, AnimeReposi
             nativeQuery = true)
     List<String> findDistinctAirYearQuartersDesc();
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Anime a SET a.viewCount = a.viewCount + 1 WHERE a.id = :id")
     void incrementViewCount(@Param("id") Long id);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Anime a SET a.reviewCount = a.reviewCount + 1 WHERE a.id = :id")
     void incrementReviewCount(@Param("id") Long id);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Anime a SET a.reviewCount = a.reviewCount - 1 WHERE a.id = :id AND a.reviewCount > 0")
     void decrementReviewCount(@Param("id") Long id);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Anime a SET a.feedCount = a.feedCount + 1 WHERE a.id = :id")
+    void incrementFeedCount(@Param("id") Long id);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Anime a SET a.feedCount = a.feedCount - 1 WHERE a.id = :id AND a.feedCount > 0")
+    void decrementFeedCount(@Param("id") Long id);
 
     @Query(value = """
             SELECT a.id FROM anime a

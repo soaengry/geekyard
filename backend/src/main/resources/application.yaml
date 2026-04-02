@@ -97,6 +97,12 @@ jwt:
   access-token-expiration: PT24H   # 1 day
   refresh-token-expiration: P7D    # 7 days
 
+app:
+  security:
+    max-devices-per-user: 5
+    max-feed-images: 4
+    account-recovery-days: 30
+
 recommendation:
   python-path: ${RECOMMENDATION_PYTHON_PATH:python}
   scripts-dir: ${RECOMMENDATION_SCRIPTS_DIR:}
@@ -124,6 +130,9 @@ spring:
     exclude:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
       - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+
+  flyway:
+    enabled: false
 
 recommendation:
   enabled: false
