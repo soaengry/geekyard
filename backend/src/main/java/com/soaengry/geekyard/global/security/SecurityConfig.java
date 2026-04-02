@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -23,6 +24,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -46,6 +48,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public RateLimitingFilter rateLimitingFilter() {
+        return new RateLimitingFilter();
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
@@ -66,7 +73,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/auth/verify").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users/recover").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/{username}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/anime/*/reviews/mine").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/anime/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/feeds/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/anime-lists/**").permitAll()
@@ -80,6 +86,7 @@ public class SecurityConfig {
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler(oAuth2FailureHandler)
                 )
+                .addFilterBefore(rateLimitingFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
