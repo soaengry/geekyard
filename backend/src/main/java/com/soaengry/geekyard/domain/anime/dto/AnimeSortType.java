@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum AnimeSortType {
 
-    POPULAR("(a.view_count + a.review_count + COALESCE((SELECT COUNT(*) FROM feeds f WHERE f.anime_id = a.id), 0)) DESC"),
+    POPULAR("(a.view_count + a.review_count + a.feed_count) DESC"),
     LATEST("a.latest_episode_release_datetime DESC NULLS LAST"),
     REVIEWCOUNT("a.review_count DESC"),
     RATING("a.avg_rating DESC NULLS LAST, a.review_count DESC");
