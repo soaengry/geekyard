@@ -20,7 +20,9 @@ import com.soaengry.geekyard.domain.user.entity.User;
 import com.soaengry.geekyard.global.common.dto.BookmarkResponse;
 import com.soaengry.geekyard.global.common.dto.LikeResponse;
 import com.soaengry.geekyard.global.service.S3Service;
+import com.soaengry.geekyard.global.util.ToggleHelper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,7 +42,8 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class FeedService {
 
-    private static final int MAX_IMAGES = 4;
+    @Value("${app.security.max-feed-images:4}")
+    private int maxImages;
 
     private final FeedRepository feedRepository;
     private final FeedLikeRepository feedLikeRepository;
@@ -84,6 +87,11 @@ public class FeedService {
 
         Feed feed = Feed.create(user, anime, request.content(), imageUrls);
         feedRepository.save(feed);
+
+        if (anime != null) {
+            animeRepository.incrementFeedCount(anime.getId());
+        }
+
         return FeedResponse.from(feed, false, false);
     }
 
@@ -117,26 +125,23 @@ public class FeedService {
         feedBookmarkRepository.deleteByFeed(feed);
         feedCommentRepository.deleteByFeed(feed);
         feedRepository.delete(feed);
+
+        if (feed.getAnime() != null) {
+            animeRepository.decrementFeedCount(feed.getAnime().getId());
+        }
     }
 
     @Transactional
     public LikeResponse toggleLike(Long feedId, User user) {
         Feed feed = findFeedOrThrow(feedId);
-        return feedLikeRepository.findByFeedAndUser(feed, user)
-                .map(like -> {
-                    feedLikeRepository.delete(like);
-                    feedRepository.decrementLikeCount(feed.getId());
-                    return new LikeResponse(false, feed.getLikeCount() - 1);
-                })
-                .orElseGet(() -> {
-                    try {
-                        feedLikeRepository.save(FeedLike.create(feed, user));
-                    } catch (DataIntegrityViolationException e) {
-                        return new LikeResponse(true, feed.getLikeCount());
-                    }
-                    feedRepository.incrementLikeCount(feed.getId());
-                    return new LikeResponse(true, feed.getLikeCount() + 1);
-                });
+        return ToggleHelper.toggleLike(
+                () -> feedLikeRepository.findByFeedAndUser(feed, user),
+                feedLikeRepository::delete,
+                () -> feedLikeRepository.save(FeedLike.create(feed, user)),
+                () -> feedRepository.decrementLikeCount(feed.getId()),
+                () -> feedRepository.incrementLikeCount(feed.getId()),
+                feed.getLikeCount()
+        );
     }
 
     @Transactional
@@ -160,7 +165,7 @@ public class FeedService {
     private List<String> uploadImages(List<MultipartFile> files, Long userId) throws IOException {
         List<String> urls = new ArrayList<>();
         if (files == null) return urls;
-        for (int i = 0; i < Math.min(files.size(), MAX_IMAGES); i++) {
+        for (int i = 0; i < Math.min(files.size(), maxImages); i++) {
             MultipartFile file = files.get(i);
             if (file != null && !file.isEmpty()) {
                 urls.add(s3Service.upload(file, userId, "feeds"));
