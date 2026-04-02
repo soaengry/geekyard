@@ -9,11 +9,11 @@ interface AnimeFilterBarProps {
 }
 
 const AnimeFilterBar: FC<AnimeFilterBarProps> = ({
-  availableGenres,
+  availableGenres: _availableGenres,
   query,
-  selectedGenres,
+  selectedGenres: _selectedGenres,
   onQueryChange,
-  onGenreToggle,
+  onGenreToggle: _onGenreToggle,
 }) => {
   const [inputValue, setInputValue] = useState(query);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
