@@ -26,19 +26,19 @@ public interface FeedRepository extends JpaRepository<Feed, Long> {
             nativeQuery = true)
     Page<Feed> findByUserAndImageUrlsNotEmpty(@Param("userId") Long userId, Pageable pageable);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Feed f SET f.likeCount = f.likeCount + 1 WHERE f.id = :feedId")
     void incrementLikeCount(@Param("feedId") Long feedId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Feed f SET f.likeCount = f.likeCount - 1 WHERE f.id = :feedId AND f.likeCount > 0")
     void decrementLikeCount(@Param("feedId") Long feedId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Feed f SET f.commentCount = f.commentCount + 1 WHERE f.id = :feedId")
     void incrementCommentCount(@Param("feedId") Long feedId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE Feed f SET f.commentCount = f.commentCount - 1 WHERE f.id = :feedId AND f.commentCount > 0")
     void decrementCommentCount(@Param("feedId") Long feedId);
 }
