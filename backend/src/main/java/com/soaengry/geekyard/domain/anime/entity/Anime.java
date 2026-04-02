@@ -62,6 +62,9 @@ public class Anime {
     @Column(name = "review_count", nullable = false)
     private Integer reviewCount = 0;
 
+    @Column(name = "feed_count", nullable = false)
+    private Integer feedCount = 0;
+
     @OneToOne(mappedBy = "anime", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private AnimeMetadata metadata;
 
