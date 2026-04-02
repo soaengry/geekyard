@@ -1,5 +1,6 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useSentinelObserver } from "../../../global/hooks/useSentinelObserver";
 import { getAnimeFilter, getAnimeList } from "../api/animeApi";
 import AnimeCard from "../components/AnimeCard";
 import AnimeDetailModal from "../components/AnimeDetailModal";
@@ -44,6 +45,8 @@ const AnimeListPage: FC = () => {
 
   // 필터 변경 시 초기화 후 첫 페이지 fetch
   useEffect(() => {
+    const controller = new AbortController();
+
     window.scrollTo(0, 0);
     setItems([]);
     setPage(0);
@@ -51,90 +54,80 @@ const AnimeListPage: FC = () => {
     setInitialLoading(true);
     setFetchError(false);
 
-    getAnimeList({
-      q: query || undefined,
-      genres,
-      tags,
-      years,
-      sort,
-      page: 0,
-      size: 20,
-    })
+    getAnimeList(
+      { q: query || undefined, genres, tags, years, sort, page: 0, size: 20 },
+      controller.signal,
+    )
       .then((data) => {
         setItems(data.content);
         setTotalElements(data.totalElements);
         setHasMore(data.number < data.totalPages - 1);
       })
-      .catch(() => setFetchError(true))
+      .catch((err) => {
+        if (err?.name !== 'CanceledError') setFetchError(true);
+      })
       .finally(() => setInitialLoading(false));
+
+    return () => controller.abort();
   }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 페이지 증가 시 추가 fetch (append)
   useEffect(() => {
     if (page === 0) return;
+    const controller = new AbortController();
+
     setLoadingMore(true);
-    getAnimeList({
-      q: query || undefined,
-      genres,
-      tags,
-      years,
-      sort,
-      page,
-      size: 20,
-    })
+    getAnimeList(
+      { q: query || undefined, genres, tags, years, sort, page, size: 20 },
+      controller.signal,
+    )
       .then((data) => {
         setItems((prev) => [...prev, ...data.content]);
         setTotalElements(data.totalElements);
         setHasMore(data.number < data.totalPages - 1);
       })
-      .catch(() => {})
+      .catch((err) => {
+        if (err?.name === 'CanceledError') return;
+      })
       .finally(() => setLoadingMore(false));
+
+    return () => controller.abort();
   }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleLoadMore = useCallback(() => setPage((prev) => prev + 1), []);
+
   // IntersectionObserver — 하단 sentinel 감지 시 다음 페이지 로드
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel || !hasMore || loadingMore || initialLoading) return;
+  useSentinelObserver({
+    sentinelRef,
+    hasMore,
+    loading: loadingMore || initialLoading,
+    onLoadMore: handleLoadMore,
+  });
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setPage((prev) => prev + 1);
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasMore, loadingMore, initialLoading]);
-
-  const handleQueryChange = (q: string) => {
+  const handleQueryChange = useCallback((q: string) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       if (q) next.set("q", q);
       else next.delete("q");
       return next;
     });
-  };
+  }, [setSearchParams]);
 
-  const handleGenreToggle = (genre: string) => {
+  const handleGenreToggle = useCallback((genre: string) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       const current = next.getAll("genres");
       next.delete("genres");
       if (current.includes(genre)) {
-        current
-          .filter((g) => g !== genre)
-          .forEach((g) => next.append("genres", g));
+        current.filter((g) => g !== genre).forEach((g) => next.append("genres", g));
       } else {
         [...current, genre].forEach((g) => next.append("genres", g));
       }
       return next;
     });
-  };
+  }, [setSearchParams]);
 
-  const handleTagToggle = (tag: string) => {
+  const handleTagToggle = useCallback((tag: string) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       const current = next.getAll("tags");
@@ -146,34 +139,32 @@ const AnimeListPage: FC = () => {
       }
       return next;
     });
-  };
+  }, [setSearchParams]);
 
-  const handleYearToggle = (year: string) => {
+  const handleYearToggle = useCallback((year: string) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       const current = next.getAll("years");
       next.delete("years");
       if (current.includes(year)) {
-        current
-          .filter((y) => y !== year)
-          .forEach((y) => next.append("years", y));
+        current.filter((y) => y !== year).forEach((y) => next.append("years", y));
       } else {
         [...current, year].forEach((y) => next.append("years", y));
       }
       return next;
     });
-  };
+  }, [setSearchParams]);
 
-  const handleSortChange = (newSort: AnimeSortType) => {
+  const handleSortChange = useCallback((newSort: AnimeSortType) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       if (newSort === "popular") next.delete("sort");
       else next.set("sort", newSort);
       return next;
     });
-  };
+  }, [setSearchParams]);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.delete("genres");
@@ -181,7 +172,7 @@ const AnimeListPage: FC = () => {
       next.delete("years");
       return next;
     });
-  };
+  }, [setSearchParams]);
 
   return (
     <div className="anime-list-page container mx-auto px-4 py-8">

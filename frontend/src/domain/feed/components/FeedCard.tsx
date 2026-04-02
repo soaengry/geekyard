@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react'
+import { FC, memo, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import { useAuthStore } from '../../auth/store/useAuthStore'
 import { toggleFeedLike, toggleFeedBookmark, deleteFeed } from '../api/feedApi'
@@ -17,7 +17,7 @@ interface FeedCardProps {
   onUpdate?: () => void
 }
 
-const FeedCard: FC<FeedCardProps> = ({ feed, onDelete, onUpdate }) => {
+const FeedCard: FC<FeedCardProps> = memo(({ feed, onDelete, onUpdate }) => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const currentUser = useAuthStore((s) => s.user)
 
@@ -35,7 +35,7 @@ const FeedCard: FC<FeedCardProps> = ({ feed, onDelete, onUpdate }) => {
     setLikeCount(feed.likeCount)
     setBookmarked(feed.bookmarked)
     setCommentCount(feed.commentCount)
-  }, [feed.liked, feed.likeCount, feed.bookmarked, feed.commentCount])
+  }, [feed.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const isOwner = currentUser?.id === feed.userId
   const images = feed.imageUrls ?? []
@@ -92,6 +92,7 @@ const FeedCard: FC<FeedCardProps> = ({ feed, onDelete, onUpdate }) => {
             <img
               src={feed.profileImage}
               alt={feed.nickname}
+              loading="lazy"
               className="w-full h-full object-cover"
             />
           ) : (
@@ -233,6 +234,7 @@ const FeedCard: FC<FeedCardProps> = ({ feed, onDelete, onUpdate }) => {
       )}
     </div>
   )
-}
+})
+
 
 export default FeedCard
