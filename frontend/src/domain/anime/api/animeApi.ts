@@ -28,7 +28,10 @@ export const getAnimeFilter = async (): Promise<AnimeFilter> => {
   return response.data.data
 }
 
-export const getAnimeList = async (params: AnimeListParams = {}): Promise<PageResponse<AnimeListItem>> => {
+export const getAnimeList = async (
+  params: AnimeListParams = {},
+  signal?: AbortSignal,
+): Promise<PageResponse<AnimeListItem>> => {
   const { q, genres, tags, years, sort, page = 0, size = 20 } = params
 
   const searchParams = new URLSearchParams()
@@ -42,6 +45,7 @@ export const getAnimeList = async (params: AnimeListParams = {}): Promise<PageRe
 
   const response = await axiosInstance.get<{ data: PageResponse<AnimeListItem> }>(
     `${ANIME_ENDPOINTS.LIST}?${searchParams.toString()}`,
+    { signal },
   )
   return response.data.data
 }
