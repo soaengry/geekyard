@@ -12,6 +12,8 @@ import com.soaengry.geekyard.global.security.jwt.JwtProvider;
 import com.soaengry.geekyard.global.service.RedisService;
 import com.soaengry.geekyard.global.service.S3Service;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,13 +23,17 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class UserService {
 
-    private static final Duration REFRESH_TOKEN_TTL = Duration.ofDays(7);
-    private static final int ACCOUNT_RECOVERY_DAYS = 30;
+    @Value("${jwt.refresh-token-expiration:P7D}")
+    private Duration refreshTokenTtl;
+
+    @Value("${app.security.account-recovery-days:30}")
+    private int accountRecoveryDays;
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -63,19 +69,23 @@ public class UserService {
         }
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            log.warn("[SECURITY] 로그인 실패 - 비밀번호 불일치: userId={}", user.getId());
             throw new UserException(UserErrorCode.AUTH_INVALID_CREDENTIALS);
         }
 
+        log.info("[SECURITY] 로그인 성공: userId={}", user.getId());
         return issueTokens(user);
     }
 
     public void logout(User user, String refreshToken) {
         redisService.deleteRefreshToken(user.getId(), refreshToken);
+        log.info("[SECURITY] 로그아웃: userId={}", user.getId());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public TokenResponse refresh(String rawRefreshToken) {
         if (!jwtProvider.validate(rawRefreshToken)) {
+            log.warn("[SECURITY] 토큰 갱신 실패 - 유효하지 않은 RefreshToken");
             throw new UserException(UserErrorCode.AUTH_INVALID_TOKEN);
         }
 
@@ -86,10 +96,12 @@ public class UserService {
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
         if (user.getTokenVersion() != tokenVersion) {
+            log.warn("[SECURITY] 토큰 갱신 실패 - 만료된 토큰 버전: userId={}", userId);
             throw new UserException(UserErrorCode.AUTH_TOKEN_EXPIRED);
         }
 
         if (!redisService.validateRefreshToken(userId, rawRefreshToken)) {
+            log.warn("[SECURITY] 토큰 갱신 실패 - Redis에 없는 토큰: userId={}", userId);
             throw new UserException(UserErrorCode.AUTH_INVALID_TOKEN);
         }
 
@@ -98,7 +110,7 @@ public class UserService {
 
         String newAccessToken = jwtProvider.generateAccessToken(userId, user.getTokenVersion());
         String newRefreshToken = jwtProvider.generateRefreshToken(userId, user.getTokenVersion());
-        redisService.saveRefreshToken(userId, newRefreshToken, REFRESH_TOKEN_TTL);
+        redisService.saveRefreshToken(userId, newRefreshToken, refreshTokenTtl);
 
         return new TokenResponse(newAccessToken, newRefreshToken);
     }
@@ -108,11 +120,13 @@ public class UserService {
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.currentPassword(), managed.getPassword())) {
+            log.warn("[SECURITY] 비밀번호 변경 실패 - 현재 비밀번호 불일치: userId={}", managed.getId());
             throw new UserException(UserErrorCode.INVALID_PASSWORD);
         }
 
         managed.changePassword(passwordEncoder.encode(request.newPassword()));
         redisService.deleteAllRefreshTokens(managed.getId());
+        log.info("[SECURITY] 비밀번호 변경 완료 - 전체 토큰 무효화: userId={}", managed.getId());
     }
 
     @Transactional(readOnly = true)
@@ -147,22 +161,26 @@ public class UserService {
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
         managed.softDelete();
         redisService.deleteAllRefreshTokens(managed.getId());
+        log.info("[SECURITY] 계정 탈퇴(Soft Delete) - 전체 토큰 무효화: userId={}", managed.getId());
     }
 
     public void recoverAccount(RecoverAccountRequest request) {
         User user = userRepository.findByEmailAndDeletedAtIsNotNull(request.email())
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
 
-        LocalDateTime cutoff = LocalDateTime.now().minusDays(ACCOUNT_RECOVERY_DAYS);
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(accountRecoveryDays);
         if (user.getDeletedAt().isBefore(cutoff)) {
             throw new UserException(UserErrorCode.ACCOUNT_RECOVERY_PERIOD_EXPIRED);
         }
 
+        // User Enumeration 방지: 비밀번호 불일치와 계정 없음을 동일한 오류로 처리
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new UserException(UserErrorCode.INVALID_PASSWORD);
+            log.warn("[SECURITY] 계정 복구 실패 - 비밀번호 불일치: email={}", request.email());
+            throw new UserException(UserErrorCode.AUTH_INVALID_CREDENTIALS);
         }
 
         user.restore();
+        log.info("[SECURITY] 계정 복구 성공: userId={}", user.getId());
     }
 
     @Transactional(readOnly = true)
@@ -180,7 +198,7 @@ public class UserService {
     private TokenResponse issueTokens(User user) {
         String accessToken = jwtProvider.generateAccessToken(user.getId(), user.getTokenVersion());
         String refreshToken = jwtProvider.generateRefreshToken(user.getId(), user.getTokenVersion());
-        redisService.saveRefreshToken(user.getId(), refreshToken, REFRESH_TOKEN_TTL);
+        redisService.saveRefreshToken(user.getId(), refreshToken, refreshTokenTtl);
         return new TokenResponse(accessToken, refreshToken);
     }
 }
