@@ -25,11 +25,11 @@ public interface AnimeReviewRepository extends JpaRepository<AnimeReview, Long> 
     @Query("SELECT COALESCE(AVG(r.score), 0), COUNT(r) FROM AnimeReview r WHERE r.anime.id = :animeId")
     List<Object[]> findReviewStatsByAnimeId(@Param("animeId") Long animeId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE AnimeReview r SET r.likeCount = r.likeCount + 1 WHERE r.id = :reviewId")
     void incrementLikeCount(@Param("reviewId") Long reviewId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("UPDATE AnimeReview r SET r.likeCount = r.likeCount - 1 WHERE r.id = :reviewId AND r.likeCount > 0")
     void decrementLikeCount(@Param("reviewId") Long reviewId);
 
