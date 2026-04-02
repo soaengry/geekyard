@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import { FC, memo } from 'react'
 import { Link } from 'react-router-dom'
 import type { AnimeListSummary } from '../types'
 
@@ -6,7 +6,7 @@ interface CollectionCardProps {
   collection: AnimeListSummary
 }
 
-const CollectionCard: FC<CollectionCardProps> = ({ collection }) => {
+const CollectionCard: FC<CollectionCardProps> = memo(({ collection }) => {
   const { id, title, description, coverImages, authorNickname, authorProfileImage, likeCount, itemCount } = collection
 
   return (
@@ -21,6 +21,7 @@ const CollectionCard: FC<CollectionCardProps> = ({ collection }) => {
               <img
                 src={coverImages[i]}
                 alt=""
+                loading="lazy"
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -67,6 +68,7 @@ const CollectionCard: FC<CollectionCardProps> = ({ collection }) => {
       </div>
     </Link>
   )
-}
+})
+
 
 export default CollectionCard

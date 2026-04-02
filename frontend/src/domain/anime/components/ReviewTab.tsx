@@ -1,10 +1,11 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react";
+import { useSentinelObserver } from "../../../global/hooks/useSentinelObserver";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod/v4";
 import { toast } from "react-toastify";
-import { isAxiosError } from "axios";
 import { useAuthStore } from "../../auth/store/useAuthStore";
+import { extractApiError } from "../../../global/utils/extractApiError";
 import {
   getReviews,
   getReviewStats,
@@ -120,20 +121,12 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
     }
   }, [animeId, page, loadingMore, hasMore]);
 
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel || !hasMore || loadingMore || loading) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) loadMore();
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasMore, loadingMore, loading, loadMore]);
+  useSentinelObserver({
+    sentinelRef,
+    hasMore,
+    loading: loadingMore || loading,
+    onLoadMore: loadMore,
+  });
 
   const openCreateForm = () => {
     setEditingReview(null);
@@ -171,12 +164,7 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
       closeForm();
       fetchInitialData();
     } catch (err) {
-      if (isAxiosError(err)) {
-        const msg = (
-          err.response?.data as { status?: { message?: string } }
-        )?.status?.message;
-        toast.error(msg ?? "리뷰 저장에 실패했습니다.");
-      }
+      toast.error(extractApiError(err, "리뷰 저장에 실패했습니다."));
     }
   };
 
@@ -186,12 +174,7 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
       toast.success("리뷰가 삭제되었습니다.");
       fetchInitialData();
     } catch (err) {
-      if (isAxiosError(err)) {
-        const msg = (
-          err.response?.data as { status?: { message?: string } }
-        )?.status?.message;
-        toast.error(msg ?? "리뷰 삭제에 실패했습니다.");
-      }
+      toast.error(extractApiError(err, "리뷰 삭제에 실패했습니다."));
     }
   };
 

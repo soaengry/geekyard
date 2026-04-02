@@ -69,6 +69,16 @@ const FeedForm: FC<FeedFormProps> = ({
     }
   }, [])
 
+  // 언마운트 시 생성된 모든 Blob URL 해제 (메모리 릭 방지)
+  const imagePreviewsRef = useRef<string[]>([])
+  imagePreviewsRef.current = imagePreviews
+
+  useEffect(() => {
+    return () => {
+      imagePreviewsRef.current.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [])
+
   useEffect(() => {
     if (isPreSelected) return
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
