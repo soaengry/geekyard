@@ -1,5 +1,9 @@
 # environment variable
 .env
+*/.env
+
+.claude
+*/.claude
 
 # Compiled class file
 *.class
