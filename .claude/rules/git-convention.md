@@ -80,3 +80,4 @@ Examples:
 - Never commit directly to `dev` or `main`.
 - PR must be reviewed before merge.
 - CI/CD runs on `dev` and `main` only.
+- `.env` files and secrets should never be committed. Use environment variables or secret management tools.
