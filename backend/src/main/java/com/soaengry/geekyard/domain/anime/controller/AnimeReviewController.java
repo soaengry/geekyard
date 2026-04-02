@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import com.soaengry.geekyard.global.util.PageRequestFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,6 +41,7 @@ public class AnimeReviewController {
     }
 
     @GetMapping("/mine")
+    @PreAuthorize("isAuthenticated()")
     @ApiSuccessCode(SuccessCode.REVIEW_LIST)
     public ReviewResponse getMyReview(
             @PathVariable Long animeId,
