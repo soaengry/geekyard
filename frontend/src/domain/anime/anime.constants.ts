@@ -1,0 +1,16 @@
+export const ANIME_ENDPOINTS = {
+  LIST: "/api/anime",
+  DETAIL: (id: number) => `/api/anime/${id}`,
+  REVIEWS: (animeId: number) => `/api/anime/${animeId}/reviews`,
+  REVIEW_STATS: (animeId: number) => `/api/anime/${animeId}/reviews/stats`,
+  MY_REVIEW: (animeId: number) => `/api/anime/${animeId}/reviews/mine`,
+  REVIEW: (animeId: number, reviewId: number) =>
+    `/api/anime/${animeId}/reviews/${reviewId}`,
+  REVIEW_LIKE: (animeId: number, reviewId: number) =>
+    `/api/anime/${animeId}/reviews/${reviewId}/like`,
+  WATCH: (id: number) => `/api/anime/${id}/watch`,
+  SIMILAR: (id: number) => `/api/anime/${id}/similar`,
+  RECOMMENDATIONS: '/api/recommendations',
+  GENRE_PREFERENCES: '/api/recommendations/genres',
+  GENRE_PREFERENCES_EXISTS: '/api/recommendations/genres/exists',
+};
