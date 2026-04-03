@@ -1,0 +1,7 @@
+export { default as MyPage } from './MyPage'
+export { default as EditProfilePage } from './EditProfilePage'
+export { default as ChangePasswordPage } from './ChangePasswordPage'
+export { default as DeleteAccountPage } from './DeleteAccountPage'
+export { default as UserProfilePage } from './UserProfilePage'
+export { default as WatchedCalendarPage } from './WatchedCalendarPage'
+export { default as WatchedStatisticsPage } from './WatchedStatisticsPage'

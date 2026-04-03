@@ -1,0 +1,42 @@
+package com.soaengry.geekyard.domain.anime.service;
+
+import com.soaengry.geekyard.domain.anime.entity.AnimeReview;
+import com.soaengry.geekyard.domain.anime.entity.ReviewLike;
+import com.soaengry.geekyard.domain.anime.repository.AnimeReviewRepository;
+import com.soaengry.geekyard.domain.anime.repository.ReviewLikeRepository;
+import com.soaengry.geekyard.domain.user.entity.User;
+import com.soaengry.geekyard.global.common.dto.LikeResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class ReviewInteractionService {
+
+    private final AnimeReviewRepository animeReviewRepository;
+    private final ReviewLikeRepository reviewLikeRepository;
+    private final ReviewFinder reviewFinder;
+
+    @Transactional
+    public LikeResponse toggleLike(Long animeId, Long reviewId, User user) {
+        AnimeReview review = reviewFinder.findOrThrow(reviewId, animeId);
+        return reviewLikeRepository.findByReviewAndUser(review, user)
+                .map(like -> {
+                    reviewLikeRepository.delete(like);
+                    animeReviewRepository.decrementLikeCount(review.getId());
+                    return new LikeResponse(false, review.getLikeCount() - 1);
+                })
+                .orElseGet(() -> {
+                    try {
+                        reviewLikeRepository.save(ReviewLike.create(review, user));
+                    } catch (DataIntegrityViolationException e) {
+                        return new LikeResponse(true, review.getLikeCount());
+                    }
+                    animeReviewRepository.incrementLikeCount(review.getId());
+                    return new LikeResponse(true, review.getLikeCount() + 1);
+                });
+    }
+}
