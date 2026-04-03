@@ -103,8 +103,8 @@ const WatchedStatisticsPage: FC = () => {
         <h2 className="watched-statistics-section-title text-base font-semibold text-content mb-4">
           월별 시청 횟수
         </h2>
-        <div className="watched-statistics-bar-chart" style={{ width: '100%', height: 250 }}>
-          <ResponsiveContainer>
+        <div className="watched-statistics-bar-chart w-full h-[250px]">
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-content, #888)" opacity={0.15} />
               <XAxis
@@ -139,8 +139,8 @@ const WatchedStatisticsPage: FC = () => {
           <h2 className="watched-statistics-section-title text-base font-semibold text-content mb-4">
             장르별 시청 비율
           </h2>
-          <div className="watched-statistics-pie-chart" style={{ width: '100%', height: 300 }}>
-            <ResponsiveContainer>
+          <div className="watched-statistics-pie-chart w-full h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={stats.genreRatios}
