@@ -25,7 +25,7 @@ const EmailVerifyPage: FC = () => {
         setTimeout(() => window.close(), 2000)
       })
       .catch(() => setStatus('error'))
-  }, [])
+  }, [searchParams])
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
