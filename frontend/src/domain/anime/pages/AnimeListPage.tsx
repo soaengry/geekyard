@@ -1,5 +1,6 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { usePaginatedData } from "../../../global/hooks/usePaginatedData";
 import { useSentinelObserver } from "../../../global/hooks/useSentinelObserver";
 import { getAnimeFilter, getAnimeList } from "../api/animeApi";
 import AnimeCard from "../components/AnimeCard";
@@ -8,18 +9,11 @@ import AnimeFilterBar from "../components/AnimeFilterBar";
 import AnimeSidebar from "../components/AnimeSidebar";
 import AnimeSortSelector from "../components/AnimeSortSelector";
 import MobileFilterDrawer from "../components/MobileFilterDrawer";
-import type { AnimeFilter, AnimeListItem, AnimeSortType } from "../types";
+import type { AnimeFilter, AnimeSortType } from "../types";
 
 const AnimeListPage: FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [items, setItems] = useState<AnimeListItem[]>([]);
-  const [totalElements, setTotalElements] = useState(0);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [fetchError, setFetchError] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [filterData, setFilterData] = useState<AnimeFilter | null>(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
@@ -43,65 +37,25 @@ const AnimeListPage: FC = () => {
       .catch(() => {});
   }, []);
 
-  // 필터 변경 시 초기화 후 첫 페이지 fetch
+  // 필터 변경 시 스크롤 최상단으로 이동
   useEffect(() => {
-    const controller = new AbortController();
-
     window.scrollTo(0, 0);
-    setItems([]);
-    setPage(0);
-    setHasMore(true);
-    setInitialLoading(true);
-    setFetchError(false);
+  }, [filterKey]);
 
-    getAnimeList(
-      { q: query || undefined, genres, tags, years, sort, page: 0, size: 20 },
-      controller.signal,
-    )
-      .then((data) => {
-        setItems(data.content);
-        setTotalElements(data.totalElements);
-        setHasMore(data.number < data.totalPages - 1);
-      })
-      .catch((err) => {
-        if (err?.name !== 'CanceledError') setFetchError(true);
-      })
-      .finally(() => setInitialLoading(false));
+  const fetcher = useCallback(
+    (page: number) =>
+      getAnimeList({ q: query || undefined, genres, tags, years, sort, page, size: 20 }),
+    [filterKey], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
-    return () => controller.abort();
-  }, [filterKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { items, loading: initialLoading, loadingMore, hasMore, total, error: fetchError, loadMore } =
+    usePaginatedData(fetcher);
 
-  // 페이지 증가 시 추가 fetch (append)
-  useEffect(() => {
-    if (page === 0) return;
-    const controller = new AbortController();
-
-    setLoadingMore(true);
-    getAnimeList(
-      { q: query || undefined, genres, tags, years, sort, page, size: 20 },
-      controller.signal,
-    )
-      .then((data) => {
-        setItems((prev) => [...prev, ...data.content]);
-        setTotalElements(data.totalElements);
-        setHasMore(data.number < data.totalPages - 1);
-      })
-      .catch((err) => {
-        if (err?.name === 'CanceledError') return;
-      })
-      .finally(() => setLoadingMore(false));
-
-    return () => controller.abort();
-  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleLoadMore = useCallback(() => setPage((prev) => prev + 1), []);
-
-  // IntersectionObserver — 하단 sentinel 감지 시 다음 페이지 로드
   useSentinelObserver({
     sentinelRef,
     hasMore,
     loading: loadingMore || initialLoading,
-    onLoadMore: handleLoadMore,
+    onLoadMore: loadMore,
   });
 
   const handleQueryChange = useCallback((q: string) => {
@@ -182,7 +136,7 @@ const AnimeListPage: FC = () => {
         </h1>
         {!initialLoading && !fetchError && (
           <span className="result-count text-sm text-subtle">
-            총 {totalElements.toLocaleString()}개
+            총 {total.toLocaleString()}개
           </span>
         )}
       </div>
