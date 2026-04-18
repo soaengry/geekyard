@@ -19,6 +19,7 @@
 - [기술 스택](#기술-스택)
 - [시작하기](#시작하기)
 - [환경변수](#환경변수)
+- [주요 화면](#주요-화면)
 - [프로젝트 구조](#프로젝트-구조)
 - [아키텍처 패턴](#아키텍처-패턴)
 - [기여 가이드](#기여-가이드)
@@ -97,6 +98,31 @@ export const ENV = {
   API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
   OAUTH2_BASE_URL: import.meta.env.VITE_OAUTH2_BASE_URL,
 } as const
+```
+
+---
+
+## 주요 화면
+
+> 스크린샷 및 GIF 파일을 `docs/screenshots/` 폴더에 추가한 뒤 아래 링크를 업데이트하세요.
+
+| 애니메 탐색 | 피드 | 마이페이지 |
+|:---:|:---:|:---:|
+| `docs/screenshots/anime-list.png` | `docs/screenshots/feed.png` | `docs/screenshots/mypage.png` |
+
+| 시청 통계 | 실시간 채팅 | 컬렉션 |
+|:---:|:---:|:---:|
+| `docs/screenshots/statistics.png` | `docs/screenshots/chat.png` | `docs/screenshots/collection.png` |
+
+### 핵심 사용자 흐름
+
+```
+회원가입 / 소셜 로그인
+    → 장르 선호도 설정 (/genre-selection)
+    → 애니메 탐색 (/anime)
+    → 시청 기록 추가 → 시청 통계 (/me/watched/statistics)
+    → 피드 작성 (/feed)
+    → 실시간 채팅 (작품 상세 페이지)
 ```
 
 ---
