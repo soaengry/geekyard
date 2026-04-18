@@ -1,4 +1,6 @@
-import { FC, useEffect, useRef, useState } from 'react'
+import { FC, useCallback, useRef, useState } from 'react'
+import { usePaginatedData } from '../../../global/hooks/usePaginatedData'
+import { useSentinelObserver } from '../../../global/hooks/useSentinelObserver'
 import { getCollections } from '../api/animeListApi'
 import { useAuthStore } from '../../auth/store/useAuthStore'
 import CollectionCard from '../components/CollectionCard'
@@ -7,65 +9,26 @@ import type { AnimeListSummary } from '../types'
 
 const CollectionListPage: FC = () => {
   const { isAuthenticated } = useAuthStore()
-
-  const [items, setItems] = useState<AnimeListSummary[]>([])
-  const [page, setPage] = useState(0)
-  const [hasMore, setHasMore] = useState(true)
-  const [initialLoading, setInitialLoading] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [fetchError, setFetchError] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  // 컬렉션 생성 후 목록 재조회를 위한 키
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const sentinelRef = useRef<HTMLDivElement>(null)
 
-  const fetchInitial = () => {
-    setItems([])
-    setPage(0)
-    setHasMore(true)
-    setInitialLoading(true)
-    setFetchError(false)
+  const fetcher = useCallback(
+    (page: number) => getCollections(page, 12),
+    [refreshKey], // eslint-disable-line react-hooks/exhaustive-deps
+  )
 
-    getCollections(0, 12)
-      .then((data) => {
-        setItems(data.content)
-        setHasMore(data.number < data.totalPages - 1)
-      })
-      .catch(() => setFetchError(true))
-      .finally(() => setInitialLoading(false))
-  }
+  const { items, loading: initialLoading, loadingMore, hasMore, error: fetchError, loadMore } =
+    usePaginatedData<AnimeListSummary>(fetcher)
 
-  useEffect(() => {
-    fetchInitial()
-  }, [])
-
-  useEffect(() => {
-    if (page === 0) return
-    setLoadingMore(true)
-    getCollections(page, 12)
-      .then((data) => {
-        setItems((prev) => [...prev, ...data.content])
-        setHasMore(data.number < data.totalPages - 1)
-      })
-      .catch(() => {})
-      .finally(() => setLoadingMore(false))
-  }, [page])
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current
-    if (!sentinel || !hasMore || loadingMore || initialLoading) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setPage((prev) => prev + 1)
-        }
-      },
-      { threshold: 0.1 },
-    )
-
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, [hasMore, loadingMore, initialLoading])
+  useSentinelObserver({
+    sentinelRef,
+    hasMore,
+    loading: loadingMore || initialLoading,
+    onLoadMore: loadMore,
+  })
 
   return (
     <div className="collection-list-page container mx-auto px-4 py-8">
@@ -140,7 +103,10 @@ const CollectionListPage: FC = () => {
       {showCreateModal && (
         <CreateCollectionModal
           onClose={() => setShowCreateModal(false)}
-          onCreated={fetchInitial}
+          onCreated={() => {
+            setShowCreateModal(false)
+            setRefreshKey((k) => k + 1)
+          }}
         />
       )}
     </div>
