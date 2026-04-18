@@ -20,6 +20,7 @@
 ## 목차
 
 - [소개](#소개)
+- [스크린샷](#스크린샷)
 - [기술 스택](#기술-스택)
 - [아키텍처](#아키텍처)
 - [시작하기](#시작하기)
@@ -34,27 +35,46 @@
 
 Geekyard는 애니메이션 팬을 위한 커뮤니티 플랫폼입니다.
 
-- **검색 & 탐색** — 장르, 태그, 연도별 필터링으로 원하는 애니메를 찾아보세요.
-- **시청 기록** — 본 작품을 기록하고 캘린더와 통계로 한눈에 확인하세요.
-- **리뷰** — 별점과 감상을 남기고 다른 팬들의 리뷰를 읽어보세요.
-- **피드** — 팬들과 감상을 공유하고 이미지와 함께 이야기를 나눠보세요.
-- **리스트** — 테마별 애니메 컬렉션을 만들어 공유하세요.
-- **실시간 채팅** — 작품별 채팅방에서 팬들과 실시간으로 소통하세요.
-- **추천** — AI 기반으로 취향에 맞는 작품을 추천받아 보세요.
+| 기능        | 설명                                          |
+| ----------- | --------------------------------------------- |
+| 검색 & 탐색 | 장르 · 태그 · 연도별 필터링, 유사 작품 추천   |
+| 시청 기록   | 캘린더 · 통계로 시청 이력 관리                |
+| 리뷰 & 평점 | 별점과 감상 공유, 좋아요                      |
+| 피드        | 이미지 포함 감상 공유, 댓글 · 좋아요 · 북마크 |
+| 컬렉션      | 테마별 애니메 리스트 생성 & 공유              |
+| 실시간 채팅 | 작품별 채팅방 (STOMP WebSocket)               |
+| AI 추천     | 장르 선호도 기반 맞춤 추천                    |
+| 소셜 로그인 | Google · Kakao · Naver OAuth2                 |
+
+---
+
+## 스크린샷
+
+[ 애니메이션 탐색]
+![animeSearch](./docs/screenshots/animeSearch.png)
+
+[ 애니메이션 상세]
+![animeDetail](./docs/screenshots/animeDetail.png)
+
+[ 피드 페이지 ]
+![feed](./docs/screenshots/feed.png)
+
+[ 시청 통계 ]
+![statistic](./docs/screenshots/statistic.png)
 
 ---
 
 ## 기술 스택
 
-| 영역 | 기술 |
-|------|------|
-| **Backend** | Java 17, Spring Boot 3.5, Spring Security, Spring Data JPA |
-| **Frontend** | React 19, TypeScript 5.7, Vite 6, Tailwind CSS 3.4 |
-| **Database** | PostgreSQL 15, MongoDB 7, Redis 7 |
-| **Auth** | JWT (HS256), OAuth2 (Google · Kakao · Naver) |
-| **Storage** | AWS S3 |
-| **Realtime** | WebSocket (STOMP) |
-| **Infra** | Docker, Nginx, EC2, Vercel, GitHub Actions |
+| 영역         | 기술                                                       |
+| ------------ | ---------------------------------------------------------- |
+| **Backend**  | Java 17, Spring Boot 3.5, Spring Security, Spring Data JPA |
+| **Frontend** | React 19, TypeScript 5.7, Vite 6, Tailwind CSS 3.4         |
+| **Database** | PostgreSQL 15, MongoDB 7, Redis 7                          |
+| **Auth**     | JWT (HS256), OAuth2 (Google · Kakao · Naver)               |
+| **Storage**  | AWS S3                                                     |
+| **Realtime** | WebSocket (STOMP)                                          |
+| **Infra**    | Docker, Nginx, EC2, Vercel, GitHub Actions                 |
 
 ---
 
@@ -88,13 +108,13 @@ Geekyard는 애니메이션 팬을 위한 커뮤니티 플랫폼입니다.
 
 ### 도메인 구조 (DDD)
 
-| 도메인 | 설명 |
-|--------|------|
-| `user` | 회원가입, 로그인, 프로필, 시청 통계/캘린더 |
-| `anime` | 애니메 정보, 필터, 리뷰, 추천 |
-| `animelist` | 개인 애니메 컬렉션 |
-| `feed` | 피드 작성/조회, 댓글, 좋아요, 북마크 |
-| `chat` | 작품별 실시간 채팅 |
+| 도메인      | 설명                                       |
+| ----------- | ------------------------------------------ |
+| `user`      | 회원가입, 로그인, 프로필, 시청 통계/캘린더 |
+| `anime`     | 애니메 정보, 필터, 리뷰, 추천              |
+| `animelist` | 개인 애니메 컬렉션                         |
+| `feed`      | 피드 작성/조회, 댓글, 좋아요, 북마크       |
+| `chat`      | 작품별 실시간 채팅                         |
 
 ---
 
@@ -102,14 +122,14 @@ Geekyard는 애니메이션 팬을 위한 커뮤니티 플랫폼입니다.
 
 ### 사전 요구사항
 
-| 도구 | 버전 |
-|------|------|
-| Java (JDK) | 17+ |
-| Node.js | 20+ |
+| 도구                    | 버전      |
+| ----------------------- | --------- |
+| Java (JDK)              | 17+       |
+| Node.js                 | 20+       |
 | Docker & Docker Compose | 최신 버전 |
-| PostgreSQL | 15+ |
-| MongoDB | 7+ |
-| Redis | 7+ |
+| PostgreSQL              | 15+       |
+| MongoDB                 | 7+        |
+| Redis                   | 7+        |
 
 ### 1. 레포지토리 클론
 
@@ -219,9 +239,9 @@ geekyard/
 
 ### 환경별 브랜치 전략
 
-| 브랜치 | 환경 | 트리거 |
-|--------|------|--------|
-| `dev` | Staging | push |
+| 브랜치 | 환경       | 트리거            |
+| ------ | ---------- | ----------------- |
+| `dev`  | Staging    | push              |
 | `main` | Production | push (PR 승인 후) |
 
 ### CI/CD 파이프라인
@@ -253,17 +273,18 @@ git checkout -b feat/my-feature
 [<type>] <scope>: <short summary>
 ```
 
-| type | 설명 |
-|------|------|
-| `feat` | 새 기능 |
-| `fix` | 버그 수정 |
+| type       | 설명                      |
+| ---------- | ------------------------- |
+| `feat`     | 새 기능                   |
+| `fix`      | 버그 수정                 |
 | `refactor` | 리팩토링 (동작 변경 없음) |
-| `style` | 포맷, 린트 |
-| `docs` | 문서 수정 |
-| `test` | 테스트 추가/수정 |
-| `chore` | 빌드, 설정 |
+| `style`    | 포맷, 린트                |
+| `docs`     | 문서 수정                 |
+| `test`     | 테스트 추가/수정          |
+| `chore`    | 빌드, 설정                |
 
 **예시:**
+
 ```
 [feat] auth: add email verification flow
 [fix] feed: resolve image upload size limit
