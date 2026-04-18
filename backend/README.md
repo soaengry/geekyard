@@ -19,6 +19,7 @@
 - [기술 스택](#기술-스택)
 - [시작하기](#시작하기)
 - [환경변수](#환경변수)
+- [사용 방법](#사용-방법)
 - [API 문서](#api-문서)
 - [프로젝트 구조](#프로젝트-구조)
 - [보안](#보안)
@@ -132,6 +133,48 @@ docker run -d \
 | `AWS_S3_REGION` | `ap-northeast-2` | S3 리전 |
 | `APP_BASE_URL` | `http://localhost:8080` | 서버 URL |
 | `FRONTEND_URL` | `http://localhost:3000` | 프론트엔드 URL |
+
+---
+
+## 사용 방법
+
+### 일반 인증 흐름
+
+```bash
+# 1. 회원가입
+curl -X POST http://localhost:8080/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"Password1!","nickname":"geekuser","username":"geekuser"}'
+
+# 2. 로그인
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"Password1!"}'
+# → {"accessToken":"eyJ...","refreshToken":"eyJ..."}
+
+# 3. 인증 필요 API 호출
+curl http://localhost:8080/api/users/me \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+### OAuth2 소셜 로그인
+
+브라우저에서 아래 URL로 접근하면 소셜 로그인 페이지로 리다이렉트됩니다:
+
+```
+http://localhost:8080/oauth2/authorization/google
+http://localhost:8080/oauth2/authorization/kakao
+http://localhost:8080/oauth2/authorization/naver
+```
+
+인증 완료 후 프론트엔드 콜백 URL(`FRONTEND_URL/oauth2/callback?token=...`)으로 리다이렉트됩니다.
+
+### 헬스 체크
+
+```bash
+curl http://localhost:8080/hc
+# → 200 OK
+```
 
 ---
 
