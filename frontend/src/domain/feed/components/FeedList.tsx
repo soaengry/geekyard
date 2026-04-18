@@ -1,5 +1,5 @@
-import { FC, useCallback, useEffect, useState } from 'react'
-import { toast } from 'react-toastify'
+import { FC, useCallback } from 'react'
+import { usePaginatedData } from '../../../global/hooks/usePaginatedData'
 import { getFeeds } from '../api/feedApi'
 import type { FeedResponse } from '../types'
 import FeedCard from './FeedCard'
@@ -10,48 +10,18 @@ interface FeedListProps {
 }
 
 const FeedList: FC<FeedListProps> = ({ animeId, refreshKey }) => {
-  const [feeds, setFeeds] = useState<FeedResponse[]>([])
-  const [page, setPage] = useState(0)
-  const [hasMore, setHasMore] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
+  const fetcher = useCallback(
+    (page: number) => getFeeds(page, 10, animeId),
+    [animeId, refreshKey], // eslint-disable-line react-hooks/exhaustive-deps
+  )
 
-  const fetchFeeds = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await getFeeds(0, 10, animeId)
-      setFeeds(data.content)
-      setPage(0)
-      setHasMore(data.number < data.totalPages - 1)
-    } catch {
-      toast.error('피드를 불러오는데 실패했습니다.')
-    } finally {
-      setLoading(false)
-    }
-  }, [animeId])
+  const { items: feeds, loading, loadingMore, hasMore, loadMore, setItems: setFeeds } =
+    usePaginatedData<FeedResponse>(fetcher)
 
-  useEffect(() => {
-    fetchFeeds()
-  }, [fetchFeeds, refreshKey])
-
-  const handleLoadMore = async () => {
-    setLoadingMore(true)
-    try {
-      const nextPage = page + 1
-      const data = await getFeeds(nextPage, 10, animeId)
-      setFeeds((prev) => [...prev, ...data.content])
-      setPage(nextPage)
-      setHasMore(data.number < data.totalPages - 1)
-    } catch {
-      toast.error('피드를 불러오는데 실패했습니다.')
-    } finally {
-      setLoadingMore(false)
-    }
-  }
-
-  const handleDelete = (feedId: number) => {
-    setFeeds((prev) => prev.filter((f) => f.id !== feedId))
-  }
+  const handleDelete = useCallback(
+    (feedId: number) => setFeeds((prev) => prev.filter((f) => f.id !== feedId)),
+    [setFeeds],
+  )
 
   if (loading) {
     return (
@@ -78,7 +48,7 @@ const FeedList: FC<FeedListProps> = ({ animeId, refreshKey }) => {
       ))}
       {hasMore && (
         <button
-          onClick={handleLoadMore}
+          onClick={loadMore}
           disabled={loadingMore}
           className="feed-load-more w-full py-2.5 text-sm rounded-lg bg-content/5 text-subtle hover:text-content hover:bg-content/10 transition-colors disabled:opacity-50"
         >
