@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState } from 'react'
+import { FC, useCallback, useState } from 'react'
 import { toast } from 'react-toastify'
 import { useAuthStore } from '../../auth/store/useAuthStore'
 import {
@@ -9,6 +9,7 @@ import {
   toggleCommentLike,
 } from '../api/feedApi'
 import { extractApiError } from '../../../global/utils/extractApiError'
+import { usePaginatedData } from '../../../global/hooks/usePaginatedData'
 import type { CommentResponse } from '../types'
 import CommentCard from './CommentCard'
 import CommentForm from './CommentForm'
@@ -29,47 +30,20 @@ const FeedCommentSection: FC<FeedCommentSectionProps> = ({
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const currentUser = useAuthStore((s) => s.user)
 
-  const [comments, setComments] = useState<CommentResponse[]>([])
-  const [page, setPage] = useState(0)
-  const [hasMore, setHasMore] = useState(false)
-  const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [sort, setSort] = useState<CommentSort>('LATEST')
 
-  const fetchComments = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await getComments(feedId, 0, 20, sort)
-      setComments(data.content)
-      setPage(0)
-      setHasMore(data.number < data.totalPages - 1)
-    } catch {
-      toast.error('댓글을 불러오는데 실패했습니다.')
-    } finally {
-      setLoading(false)
-    }
-  }, [feedId, sort])
+  // sort 변경 시 fetcher identity가 바뀌어 자동으로 목록 초기화 후 재조회
+  const fetcher = useCallback(
+    (page: number) => getComments(feedId, page, 20, sort),
+    [feedId, sort],
+  )
 
-  useEffect(() => {
-    fetchComments()
-  }, [fetchComments])
+  const { items: comments, loading, loadingMore, hasMore, loadMore, setItems: setComments } =
+    usePaginatedData<CommentResponse>(fetcher)
 
   const handleSortChange = (newSort: CommentSort) => {
-    if (newSort !== sort) {
-      setSort(newSort)
-    }
-  }
-
-  const handleLoadMore = async () => {
-    try {
-      const nextPage = page + 1
-      const data = await getComments(feedId, nextPage, 20, sort)
-      setComments((prev) => [...prev, ...data.content])
-      setPage(nextPage)
-      setHasMore(data.number < data.totalPages - 1)
-    } catch {
-      toast.error('댓글을 불러오는데 실패했습니다.')
-    }
+    if (newSort !== sort) setSort(newSort)
   }
 
   const handleCreate = async (content: string) => {
@@ -180,10 +154,11 @@ const FeedCommentSection: FC<FeedCommentSectionProps> = ({
 
           {hasMore && (
             <button
-              onClick={handleLoadMore}
-              className="comment-load-more w-full py-2 text-sm text-subtle hover:text-content transition-colors"
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="comment-load-more w-full py-2 text-sm text-subtle hover:text-content transition-colors disabled:opacity-50"
             >
-              댓글 더보기
+              {loadingMore ? '불러오는 중...' : '댓글 더보기'}
             </button>
           )}
 
