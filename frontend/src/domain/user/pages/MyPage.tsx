@@ -1,6 +1,5 @@
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { useAuthStore } from "../../auth/store/useAuthStore";
 import EmailVerification from "../../auth/components/EmailVerification";
 import {
@@ -11,6 +10,7 @@ import {
   getMyImageFeeds,
 } from "../../feed/api/feedApi";
 import { formatDate } from "../../../global/utils/formatDate";
+import { usePaginatedData } from "../../../global/hooks/usePaginatedData";
 import type { FeedResponse, CommentResponse } from "../../feed/types";
 import type { PageResponse } from "../../anime/types";
 import FeedCard from "../../feed/components/FeedCard";
@@ -27,7 +27,10 @@ type TabType = (typeof TABS)[number];
 
 type DataType = "feed" | "comment";
 
-const TAB_CONFIG: Record<TabType, { fetcher: (page: number) => Promise<PageResponse<FeedResponse | CommentResponse>>; type: DataType }> = {
+const TAB_CONFIG: Record<
+  TabType,
+  { fetcher: (page: number) => Promise<PageResponse<FeedResponse | CommentResponse>>; type: DataType }
+> = {
   "내 피드": { fetcher: getMyFeeds, type: "feed" },
   "내 댓글": { fetcher: getMyComments, type: "comment" },
   "좋아요": { fetcher: getLikedFeeds, type: "feed" },
@@ -40,47 +43,16 @@ const MyPage: FC = () => {
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
   const [activeTab, setActiveTab] = useState<TabType>("내 피드");
-  const [feeds, setFeeds] = useState<FeedResponse[]>([]);
-  const [comments, setComments] = useState<CommentResponse[]>([]);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [selectedFeedId, setSelectedFeedId] = useState<number | null>(null);
 
-  const fetchData = useCallback(
-    async (tab: TabType, pageNum: number, append = false) => {
-      if (!append) setLoading(true);
-      try {
-        const config = TAB_CONFIG[tab];
-        const data = await config.fetcher(pageNum);
-        const updateHasMore = () => setHasMore(data.number < data.totalPages - 1);
-
-        if (config.type === "feed") {
-          setFeeds((prev) => append ? [...prev, ...data.content as FeedResponse[]] : data.content as FeedResponse[]);
-        } else {
-          setComments((prev) => append ? [...prev, ...data.content as CommentResponse[]] : data.content as CommentResponse[]);
-        }
-        updateHasMore();
-        setPage(pageNum);
-      } catch {
-        toast.error("데이터를 불러오는데 실패했습니다.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [],
+  // activeTab 변경 시 fetcher identity가 바뀌어 자동으로 목록 초기화 후 재조회
+  const fetcher = useCallback(
+    (page: number) => TAB_CONFIG[activeTab].fetcher(page),
+    [activeTab],
   );
 
-  useEffect(() => {
-    setFeeds([]);
-    setComments([]);
-    setPage(0);
-    fetchData(activeTab, 0);
-  }, [activeTab, fetchData]);
-
-  const handleLoadMore = () => {
-    fetchData(activeTab, page + 1, true);
-  };
+  const { items, loading, loadingMore, hasMore, loadMore } =
+    usePaginatedData<FeedResponse | CommentResponse>(fetcher);
 
   if (!user) return null;
 
@@ -102,6 +74,7 @@ const MyPage: FC = () => {
           <img
             src={user.profileImage}
             alt="프로필 이미지"
+            loading="lazy"
             className="w-20 h-20 rounded-full mb-4 object-cover"
           />
         )}
@@ -213,8 +186,10 @@ const MyPage: FC = () => {
         ) : (
           <div className="activity-content space-y-3">
             {tabType === "feed" &&
-              (feeds.length > 0 ? (
-                feeds.map((feed) => <FeedCard key={feed.id} feed={feed} />)
+              (items.length > 0 ? (
+                (items as FeedResponse[]).map((feed) => (
+                  <FeedCard key={feed.id} feed={feed} />
+                ))
               ) : (
                 <p className="activity-empty text-center text-subtle text-sm py-8">
                   데이터가 없습니다.
@@ -222,8 +197,8 @@ const MyPage: FC = () => {
               ))}
 
             {tabType === "comment" &&
-              (comments.length > 0 ? (
-                comments.map((comment) => (
+              (items.length > 0 ? (
+                (items as CommentResponse[]).map((comment) => (
                   <button
                     key={comment.id}
                     onClick={() => setSelectedFeedId(comment.feedId)}
@@ -245,10 +220,11 @@ const MyPage: FC = () => {
 
             {hasMore && (
               <button
-                onClick={handleLoadMore}
-                className="activity-load-more w-full py-2.5 text-sm rounded-lg bg-content/5 text-subtle hover:text-content hover:bg-content/10 transition-colors"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="activity-load-more w-full py-2.5 text-sm rounded-lg bg-content/5 text-subtle hover:text-content hover:bg-content/10 transition-colors disabled:opacity-50"
               >
-                더보기
+                {loadingMore ? "불러오는 중..." : "더보기"}
               </button>
             )}
           </div>
