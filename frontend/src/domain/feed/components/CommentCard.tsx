@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react'
+import { FC, memo, useEffect, useState } from 'react'
 import { formatDate } from '../../../global/utils/formatDate'
 import type { CommentResponse } from '../types'
 import LikeButton from './LikeButton'
@@ -141,4 +141,4 @@ const CommentCard: FC<CommentCardProps> = ({
   )
 }
 
-export default CommentCard
+export default memo(CommentCard)
