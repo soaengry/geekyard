@@ -127,6 +127,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
+
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
@@ -134,6 +135,33 @@ spring:
 
   flyway:
     enabled: false
+
+  mail:
+    username: test@example.com
+    password: test-password
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-google-id
+            client-secret: test-google-secret
+          kakao:
+            client-id: test-kakao-id
+            client-secret: test-kakao-secret
+          naver:
+            client-id: test-naver-id
+            client-secret: test-naver-secret
+
+aws:
+  s3:
+    bucket: test-bucket
+    access-key: test-access-key
+    secret-key: test-secret-key
+
+jwt:
+  secret: test-jwt-secret-key-for-testing-purposes-only-minimum-256bits
 
 recommendation:
   enabled: false
