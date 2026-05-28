@@ -1,12 +1,7 @@
 name: Deploy to Staging
 
 on:
-  push:
-    branches: [dev]
-    paths:
-      - "backend/**"
-      - "infra/**"
-      - ".github/workflows/deploy-staging.yml"
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
