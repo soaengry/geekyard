@@ -245,6 +245,6 @@ class UserServiceTest {
         assertThatThrownBy(() ->
                 userService.recoverAccount(new RecoverAccountRequest("recover2@example.com", "wrongpassword"))
         ).isInstanceOf(UserException.class)
-                .satisfies(e -> assertThat(((UserException) e).getErrorCode()).isEqualTo(UserErrorCode.INVALID_PASSWORD));
+                .satisfies(e -> assertThat(((UserException) e).getErrorCode()).isEqualTo(UserErrorCode.AUTH_INVALID_CREDENTIALS));
     }
 }
