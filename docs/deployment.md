@@ -87,23 +87,38 @@ scp -r ./infra/* ubuntu@<EC2-IP>:/opt/geekyard/
 `/opt/geekyard/.env.production` 파일 생성 (`infra/.env.example` 참고):
 
 ```env
-# Database (application.yaml의 ${POSTGRESQL_*} 플레이스홀더와 일치해야 함)
+# -- PostgreSQL --
+# 호스트는 Docker Compose 서비스명 사용 (변경 불필요)
+POSTGRESQL_HOST=postgres
 POSTGRESQL_DATABASE=geekyard
 POSTGRESQL_USERNAME=<db-username>
-POSTGRESQL_PASSWORD=<db-password>
+POSTGRESQL_PASSWORD=<strong-password>
 
-# Redis
-REDIS_HOST=localhost
+# -- Redis --
+# 호스트는 Docker Compose 서비스명 사용 (변경 불필요)
+REDIS_HOST=redis
 REDIS_PORT=6379
+REDIS_PASSWORD=<strong-password>
 
-# MongoDB
-MONGODB_URI=mongodb://localhost:27017/geekyard
+# -- MongoDB --
+# MONGO_* : 컨테이너 초기 계정 생성용
+# MONGODB_URI: 앱 연결 문자열 (authSource=admin 필수)
+MONGO_USERNAME=<mongo-username>
+MONGO_PASSWORD=<strong-password>
+MONGO_DB=geekyard
+MONGODB_URI=mongodb://<mongo-username>:<strong-password>@mongodb:27017/geekyard?authSource=admin
 
-# Mail
+# -- JWT --
+# openssl rand -base64 64 로 생성
+JWT_SECRET=<256bit-이상-랜덤-문자열>
+
+# -- Mail --
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
 MAIL_USERNAME=<gmail-address>
 MAIL_PASSWORD=<gmail-app-password>
 
-# OAuth2
+# -- OAuth2 --
 GOOGLE_CLIENT_ID=<id>
 GOOGLE_CLIENT_SECRET=<secret>
 KAKAO_CLIENT_ID=<id>
@@ -111,21 +126,21 @@ KAKAO_CLIENT_SECRET=<secret>
 NAVER_CLIENT_ID=<id>
 NAVER_CLIENT_SECRET=<secret>
 
-# App URLs
+# -- App URLs --
 APP_BASE_URL=https://api.geekyard.soaengry.com
 FRONTEND_URL=https://geekyard.soaengry.com
 
-# AWS S3
+# -- AWS S3 --
 AWS_S3_BUCKET=<bucket-name>
 AWS_S3_REGION=ap-northeast-2
 AWS_ACCESS_KEY=<access-key>
 AWS_SECRET_KEY=<secret-key>
 
-# JWT
-JWT_SECRET=<256bit-이상-랜덤-문자열>
+# -- Recommendation --
+RECOMMENDATION_ENABLED=false
 ```
 
-> **주의**: `SPRING_DATASOURCE_URL` 형식이 아닌 `POSTGRESQL_DATABASE` 형식을 사용해야 합니다. `application.yaml`이 `${POSTGRESQL_DATABASE}` 플레이스홀더로 참조합니다.
+> **주의**: DB 호스트는 Docker Compose 서비스명(`postgres`, `redis`, `mongodb`)을 사용합니다. `SPRING_DATASOURCE_URL` 형식은 사용하지 않습니다.
 
 ---
 
