@@ -5,6 +5,11 @@
 .env
 */.env
 
+# Secrets & tokens
+infra/GITHUB_GEEKYARD_TOKEN.txt
+**/*TOKEN*.txt
+**/*SECRET*.txt
+
 .claude
 */.claude
 
