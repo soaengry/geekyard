@@ -67,7 +67,11 @@ jobs:
 
             docker pull $DOCKER_IMAGE
 
-            bash deploy.sh production $DOCKER_IMAGE
+            bash deploy.sh production $DOCKER_IMAGE || {
+              echo "=== geekyard-production container logs ==="
+              docker logs geekyard-production --tail 100 2>&1 || true
+              exit 1
+            }
 
   build-frontend:
     needs: [build-backend]
