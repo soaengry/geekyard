@@ -44,13 +44,13 @@ jobs:
           cache-to: type=gha,mode=max
 
       # ── Deploy to EC2 ──
-      - name: Transfer deploy script to server
+      - name: Transfer infra files to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.PRODUCTION_HOST }}
           username: ${{ secrets.PRODUCTION_USER }}
           key: ${{ secrets.PRODUCTION_SSH_KEY }}
-          source: infra/deploy.sh
+          source: "infra/deploy.sh,infra/docker-compose.production.yml,infra/nginx/nginx.prod.conf"
           target: /opt/geekyard/
           strip_components: 1
 
