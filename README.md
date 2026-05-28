@@ -70,7 +70,7 @@ Geekyard는 애니메이션 팬을 위한 커뮤니티 플랫폼입니다.
 | ------------ | ---------------------------------------------------------- |
 | **Backend**  | Java 17, Spring Boot 3.5, Spring Security, Spring Data JPA |
 | **Frontend** | React 19, TypeScript 5.7, Vite 6, Tailwind CSS 3.4         |
-| **Database** | PostgreSQL 15, MongoDB 7, Redis 7                          |
+| **Database** | PostgreSQL 17, MongoDB 7, Redis 7                          |
 | **Auth**     | JWT (HS256), OAuth2 (Google · Kakao · Naver)               |
 | **Storage**  | AWS S3                                                     |
 | **Realtime** | WebSocket (STOMP)                                          |
@@ -84,7 +84,7 @@ Geekyard는 애니메이션 팬을 위한 커뮤니티 플랫폼입니다.
                         ┌──────────────────────────┐
                         │        Client (Browser)  │
                         │  React 19 + Vite + TS    │
-                        │       [Vercel]            │
+                        │   [EC2 / Nginx 서빙]      │
                         └────────────┬─────────────┘
                                      │ HTTPS / WebSocket
                         ┌────────────▼─────────────┐
@@ -127,7 +127,7 @@ Geekyard는 애니메이션 팬을 위한 커뮤니티 플랫폼입니다.
 | Java (JDK)              | 17+       |
 | Node.js                 | 20+       |
 | Docker & Docker Compose | 최신 버전 |
-| PostgreSQL              | 15+       |
+| PostgreSQL              | 17+       |
 | MongoDB                 | 7+        |
 | Redis                   | 7+        |
 
@@ -225,10 +225,16 @@ geekyard/
 ├── infra/
 │   ├── docker-compose.staging.yml
 │   ├── docker-compose.production.yml
-│   ├── nginx/nginx.conf
 │   ├── deploy.sh
 │   ├── .env.example
-│   └── DEPLOY-GUIDE.md
+│   ├── DEPLOY-GUIDE.md
+│   └── nginx/
+│       ├── nginx.conf
+│       ├── nginx.prod.conf
+│       ├── docker-compose.staging.yml
+│       ├── docker-compose.production.yml
+│       ├── deploy.sh
+│       └── DEPLOY-GUIDE.md
 │
 └── README.md                        # 이 파일
 ```
