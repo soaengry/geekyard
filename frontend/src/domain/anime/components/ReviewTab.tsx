@@ -1,125 +1,58 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react";
+import { usePaginatedData } from "../../../global/hooks/usePaginatedData";
 import { useSentinelObserver } from "../../../global/hooks/useSentinelObserver";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod/v4";
 import { toast } from "react-toastify";
-import { useAuthStore } from "../../auth/store/useAuthStore";
 import { extractApiError } from "../../../global/utils/extractApiError";
+import { useAuthStore } from "../../auth/store/useAuthStore";
 import {
   getReviews,
   getReviewStats,
   getMyReview,
-  createReview,
-  updateReview,
   deleteReview,
 } from "../api/animeApi";
-import type {
-  ReviewResponse,
-  ReviewStatsResponse,
-  PageResponse,
-} from "../types";
+import type { ReviewResponse, ReviewStatsResponse } from "../types";
 import StarRating from "./StarRating";
 import ReviewCard from "./ReviewCard";
+import ReviewForm from "./ReviewForm";
 
 interface ReviewTabProps {
   animeId: number;
   onWatchStatusChange?: () => void;
 }
 
-const reviewSchema = z.object({
-  score: z
-    .number()
-    .min(0.5, "별점을 선택해주세요.")
-    .max(5, "별점은 5점 이하여야 합니다."),
-  content: z
-    .string()
-    .max(2000, "리뷰는 2000자 이내로 작성해주세요.")
-    .optional()
-    .default(""),
-});
-
-type ReviewFormValues = z.infer<typeof reviewSchema>;
-
 const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const currentUser = useAuthStore((s) => s.user);
 
   const [stats, setStats] = useState<ReviewStatsResponse | null>(null);
-  const [reviews, setReviews] = useState<ReviewResponse[]>([]);
   const [myReview, setMyReview] = useState<ReviewResponse | null>(null);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editingReview, setEditingReview] = useState<ReviewResponse | null>(null);
+  // 리뷰 작성/수정/삭제 후 목록과 통계를 재조회하기 위한 카운터
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const [showForm, setShowForm] = useState(false);
-  const [editingReview, setEditingReview] = useState<ReviewResponse | null>(
-    null,
+  const reviewFetcher = useCallback(
+    (page: number) => getReviews(animeId, page, 10),
+    [animeId, refreshCounter], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<ReviewFormValues>({
-    resolver: zodResolver(reviewSchema),
-    defaultValues: { score: 0, content: "" },
-  });
+  const { items: reviews, loading, loadingMore, hasMore, loadMore } =
+    usePaginatedData(reviewFetcher);
 
-  const scoreValue = watch("score");
-
-  const fetchInitialData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [statsData, reviewsData] = await Promise.all([
-        getReviewStats(animeId),
-        getReviews(animeId, 0, 10),
-      ]);
-      setStats(statsData);
-      setReviews(reviewsData.content);
-      setPage(0);
-      setHasMore(reviewsData.number < reviewsData.totalPages - 1);
-
-      if (isAuthenticated) {
-        const myData = await getMyReview(animeId);
-        setMyReview(myData);
-      }
-    } catch {
-      toast.error("리뷰를 불러오는데 실패했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  }, [animeId, isAuthenticated]);
-
+  // 통계 및 내 리뷰는 페이지네이션과 별도로 조회
   useEffect(() => {
-    fetchInitialData();
-  }, [fetchInitialData]);
+    getReviewStats(animeId)
+      .then(setStats)
+      .catch(() => toast.error("리뷰 통계를 불러오는데 실패했습니다."));
 
-  const loadMore = useCallback(async () => {
-    if (loadingMore || !hasMore) return;
-    setLoadingMore(true);
-    try {
-      const nextPage = page + 1;
-      const data: PageResponse<ReviewResponse> = await getReviews(
-        animeId,
-        nextPage,
-        10,
-      );
-      setReviews((prev) => [...prev, ...data.content]);
-      setPage(nextPage);
-      setHasMore(data.number < data.totalPages - 1);
-    } catch {
-      toast.error("리뷰를 불러오는데 실패했습니다.");
-    } finally {
-      setLoadingMore(false);
+    if (isAuthenticated) {
+      getMyReview(animeId)
+        .then(setMyReview)
+        .catch(() => {});
     }
-  }, [animeId, page, loadingMore, hasMore]);
+  }, [animeId, isAuthenticated, refreshCounter]);
 
   useSentinelObserver({
     sentinelRef,
@@ -130,49 +63,30 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
 
   const openCreateForm = () => {
     setEditingReview(null);
-    reset({ score: 0, content: "" });
     setShowForm(true);
   };
 
   const openEditForm = (review: ReviewResponse) => {
     setEditingReview(review);
-    reset({ score: review.score, content: review.content });
     setShowForm(true);
   };
 
-  const closeForm = () => {
+  const handleFormSuccess = () => {
     setShowForm(false);
     setEditingReview(null);
-    reset({ score: 0, content: "" });
+    setRefreshCounter((c) => c + 1);
   };
 
-  const onValidationError = () => {
-    const scoreError = errors.score?.message;
-    if (scoreError) toast.error(scoreError);
-  };
-
-  const onSubmit = async (data: ReviewFormValues) => {
-    try {
-      if (editingReview) {
-        await updateReview(animeId, editingReview.id, data);
-        toast.success("리뷰가 수정되었습니다.");
-      } else {
-        await createReview(animeId, data);
-        toast.success("리뷰가 등록되었습니다.");
-        onWatchStatusChange?.();
-      }
-      closeForm();
-      fetchInitialData();
-    } catch (err) {
-      toast.error(extractApiError(err, "리뷰 저장에 실패했습니다."));
-    }
+  const handleFormCancel = () => {
+    setShowForm(false);
+    setEditingReview(null);
   };
 
   const handleDelete = async (reviewId: number) => {
     try {
       await deleteReview(animeId, reviewId);
       toast.success("리뷰가 삭제되었습니다.");
-      fetchInitialData();
+      setRefreshCounter((c) => c + 1);
     } catch (err) {
       toast.error(extractApiError(err, "리뷰 삭제에 실패했습니다."));
     }
@@ -190,7 +104,7 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
 
   return (
     <div className="review-tab p-5 space-y-5">
-      {/* Stats section */}
+      {/* Stats */}
       {stats && (
         <div className="review-stats flex items-center gap-3 p-4 rounded-lg bg-background border border-content/10">
           <div className="stats-score flex items-center gap-2">
@@ -214,69 +128,13 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
             </p>
           </div>
         ) : showForm ? (
-          <form
-            onSubmit={(e) => {
-              handleSubmit(onSubmit, onValidationError)(e).catch(() => {});
-            }}
-            className="review-form p-4 rounded-lg bg-background border border-content/10 space-y-4"
-          >
-            <h3 className="review-form-title text-sm font-bold text-content">
-              {editingReview ? "리뷰 수정" : "리뷰 작성"}
-            </h3>
-
-            <div className="score-input">
-              <div className="flex items-center gap-2">
-                <StarRating
-                  value={scoreValue}
-                  onChange={(v) => setValue("score", v)}
-                  size="lg"
-                />
-                <span className="text-sm font-medium text-content">
-                  {scoreValue > 0 ? scoreValue.toFixed(1) : "-"}
-                </span>
-              </div>
-              {errors.score && (
-                <p className="text-error text-xs mt-1">
-                  {errors.score.message}
-                </p>
-              )}
-            </div>
-
-            <div className="content-input">
-              <textarea
-                {...register("content")}
-                placeholder="리뷰를 작성해주세요..."
-                rows={4}
-                className="review-textarea w-full px-3 py-2 rounded-lg border border-content/10 bg-surface text-content text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-subtle"
-              />
-              {errors.content && (
-                <p className="text-error text-xs mt-1">
-                  {errors.content.message}
-                </p>
-              )}
-            </div>
-
-            <div className="form-actions flex gap-2 justify-end">
-              <button
-                type="button"
-                onClick={closeForm}
-                className="cancel-btn px-4 py-2 text-sm rounded-lg bg-content/10 text-content hover:bg-content/20 transition-colors"
-              >
-                취소
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="submit-btn px-4 py-2 text-sm rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
-              >
-                {isSubmitting
-                  ? "저장 중..."
-                  : editingReview
-                    ? "수정"
-                    : "등록"}
-              </button>
-            </div>
-          </form>
+          <ReviewForm
+            animeId={animeId}
+            editingReview={editingReview}
+            onSuccess={handleFormSuccess}
+            onCancel={handleFormCancel}
+            onWatchStatusChange={onWatchStatusChange}
+          />
         ) : myReview ? (
           <div className="my-review">
             <h3 className="my-review-title text-sm font-bold text-content mb-2">
@@ -330,7 +188,6 @@ const ReviewTab: FC<ReviewTabProps> = ({ animeId, onWatchStatusChange }) => {
         </div>
       )}
 
-      {/* Empty state */}
       {reviews.length === 0 && !myReview && (
         <div className="review-empty text-center py-8">
           <p className="text-subtle text-sm">아직 리뷰가 없습니다.</p>
