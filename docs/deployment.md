@@ -84,24 +84,24 @@ sudo chown -R $USER:$USER /opt/geekyard
 scp -r ./infra/* ubuntu@<EC2-IP>:/opt/geekyard/
 ```
 
-`/opt/geekyard/.env.production` 파일 생성:
+`/opt/geekyard/.env.production` 파일 생성 (`infra/.env.example` 참고):
 
 ```env
-# Database
-SPRING_DATASOURCE_URL=jdbc:postgresql://<host>:<port>/<db>
-SPRING_DATASOURCE_USERNAME=<username>
-SPRING_DATASOURCE_PASSWORD=<password>
+# Database (application.yaml의 ${POSTGRESQL_*} 플레이스홀더와 일치해야 함)
+POSTGRESQL_DATABASE=geekyard
+POSTGRESQL_USERNAME=<db-username>
+POSTGRESQL_PASSWORD=<db-password>
 
 # Redis
-SPRING_DATA_REDIS_HOST=<host>
-SPRING_DATA_REDIS_PORT=6379
-SPRING_DATA_REDIS_PASSWORD=<password>
+REDIS_HOST=localhost
+REDIS_PORT=6379
 
 # MongoDB
-SPRING_DATA_MONGODB_URI=mongodb://<host>:<port>/<db>
+MONGODB_URI=mongodb://localhost:27017/geekyard
 
-# JWT
-JWT_SECRET=<secret>
+# Mail
+MAIL_USERNAME=<gmail-address>
+MAIL_PASSWORD=<gmail-app-password>
 
 # OAuth2
 GOOGLE_CLIENT_ID=<id>
@@ -111,9 +111,21 @@ KAKAO_CLIENT_SECRET=<secret>
 NAVER_CLIENT_ID=<id>
 NAVER_CLIENT_SECRET=<secret>
 
-# CORS
+# App URLs
+APP_BASE_URL=https://api.geekyard.soaengry.com
 FRONTEND_URL=https://geekyard.soaengry.com
+
+# AWS S3
+AWS_S3_BUCKET=<bucket-name>
+AWS_S3_REGION=ap-northeast-2
+AWS_ACCESS_KEY=<access-key>
+AWS_SECRET_KEY=<secret-key>
+
+# JWT
+JWT_SECRET=<256bit-이상-랜덤-문자열>
 ```
+
+> **주의**: `SPRING_DATASOURCE_URL` 형식이 아닌 `POSTGRESQL_DATABASE` 형식을 사용해야 합니다. `application.yaml`이 `${POSTGRESQL_DATABASE}` 플레이스홀더로 참조합니다.
 
 ---
 
