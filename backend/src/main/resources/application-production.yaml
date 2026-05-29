@@ -1,12 +1,10 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
   flyway:
-    enabled: true
-    baseline-on-migrate: true  # 기존 DB를 V0 baseline으로 인식 후 V1부터 적용
-    baseline-version: 0
+    enabled: false
 
 cors:
   allowed-origins:
