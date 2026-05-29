@@ -9,6 +9,7 @@ set -euo pipefail
 ENV="${1:?Usage: deploy.sh <staging|production> <docker-image>}"
 NEW_IMAGE="${2:?Docker image required}"
 COMPOSE_FILE="docker-compose.${ENV}.yml"
+ENV_FILE=".env.${ENV}"
 CONTAINER_NAME="geekyard-${ENV}"
 HEALTH_URL="http://localhost:8080/actuator/health"
 MAX_RETRIES=20
@@ -26,7 +27,7 @@ fi
 # ── Deploy new version ──
 log "Deploying ${NEW_IMAGE} to ${ENV}..."
 export DOCKER_IMAGE="$NEW_IMAGE"
-docker compose -f "$COMPOSE_FILE" up -d --force-recreate --no-build
+docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --force-recreate --no-build
 
 # ── Health check ──
 log "Running health check (max ${MAX_RETRIES} attempts)..."
@@ -49,7 +50,7 @@ if [ "$HEALTHY" = false ]; then
   if [ -n "$PREVIOUS_IMAGE" ]; then
     log "🔄 Rolling back to ${PREVIOUS_IMAGE}..."
     export DOCKER_IMAGE="$PREVIOUS_IMAGE"
-    docker compose -f "$COMPOSE_FILE" up -d --force-recreate --no-build
+    docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --force-recreate --no-build
 
     # Verify rollback
     sleep 30
