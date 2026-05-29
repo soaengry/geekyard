@@ -33,7 +33,9 @@ docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --force-recreate 
 log "Running health check (max ${MAX_RETRIES} attempts)..."
 HEALTHY=false
 for i in $(seq 1 "$MAX_RETRIES"); do
-  STATUS=$(docker exec "$CONTAINER_NAME" wget -qO- "$HEALTH_URL" 2>/dev/null | grep -o '"status":"[^"]*"' | head -1 || echo "")
+  HEALTH_RESPONSE=$(docker exec "$CONTAINER_NAME" wget -qO- "$HEALTH_URL" 2>/dev/null || echo "")
+  STATUS=$(echo "$HEALTH_RESPONSE" | grep -o '"status":"[^"]*"' | head -1 || echo "")
+  log "Health response (attempt $i): ${HEALTH_RESPONSE:-(no response)}"
   if echo "$STATUS" | grep -q '"UP"'; then
     log "✅ Health check passed (attempt $i/${MAX_RETRIES})"
     HEALTHY=true
