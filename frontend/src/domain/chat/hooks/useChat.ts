@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Client } from '@stomp/stompjs'
 import { getAccessToken } from '../../auth/auth.utils'
 import { STOMP_DESTINATIONS } from '../chat.constants'
+import { ENV } from '../../../global/config/env'
 import type { ChatMessage } from '../types'
 
 interface UseChatReturn {
@@ -20,9 +21,11 @@ export const useChat = (animeId: number): UseChatReturn => {
     const token = getAccessToken()
     if (!token) return
 
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+    const brokerURL = (ENV.API_BASE_URL || `${window.location.protocol}//${window.location.host}`)
+      .replace(/^https/, 'wss')
+      .replace(/^http/, 'ws') + '/ws'
     const client = new Client({
-      brokerURL: `${protocol}://${window.location.host}/ws`,
+      brokerURL,
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
