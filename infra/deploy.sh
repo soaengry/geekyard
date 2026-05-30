@@ -27,9 +27,25 @@ fi
 # ── Deploy new version ──
 log "Deploying ${NEW_IMAGE} to ${ENV}..."
 export DOCKER_IMAGE="$NEW_IMAGE"
-# compose up이 nginx depends_on 헬스체크 실패로 non-zero 반환해도 계속 진행
-if ! docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --force-recreate --no-build; then
-  log "⚠️ docker compose up reported an issue (proceeding to health check loop)"
+
+# DB 컨테이너는 재생성하지 않음 (볼륨 데이터 보존 + 초기화는 최초 1회만)
+docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --no-recreate 2>/dev/null || \
+  docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d 2>/dev/null || true
+
+# DB 헬스 대기
+for _svc in postgres redis mongodb; do
+  _cname="geekyard-${_svc}"
+  for _j in $(seq 1 30); do
+    _st=$(docker inspect "$_cname" --format='{{.State.Health.Status}}' 2>/dev/null || echo "missing")
+    [ "$_st" = "healthy" ] && { log "${_svc} healthy"; break; }
+    [ "$_j" -eq 30 ] && log "⚠️ ${_svc} health timeout"
+    sleep 3
+  done
+done
+
+# 앱과 nginx만 강제 재생성
+if ! docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --force-recreate --no-deps app nginx; then
+  log "⚠️ docker compose up (app/nginx) reported an issue"
 fi
 
 # ── Health check ──
@@ -59,7 +75,9 @@ if [ "$HEALTHY" = false ]; then
   if [ -n "$PREVIOUS_IMAGE" ]; then
     log "🔄 Rolling back to ${PREVIOUS_IMAGE}..."
     export DOCKER_IMAGE="$PREVIOUS_IMAGE"
-    docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --force-recreate --no-build
+    if ! docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --force-recreate --no-deps app nginx; then
+      log "⚠️ rollback compose up reported an issue"
+    fi
 
     # Verify rollback
     sleep 30
