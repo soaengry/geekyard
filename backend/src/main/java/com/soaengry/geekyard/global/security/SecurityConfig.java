@@ -61,6 +61,7 @@ public class SecurityConfig {
                         // 인증 없이 접근 가능한 경로
                         .requestMatchers(
                                 "/hc",
+                                "/actuator/health",
                                 "/ws/**",
                                 "/login/oauth2/**",
                                 "/oauth2/**"
