@@ -6,6 +6,9 @@ spring:
   flyway:
     enabled: false
 
+server:
+  forward-headers-strategy: native
+
 cors:
   allowed-origins:
     - ${FRONTEND_URL}
