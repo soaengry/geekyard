@@ -27,7 +27,10 @@ fi
 # ── Deploy new version ──
 log "Deploying ${NEW_IMAGE} to ${ENV}..."
 export DOCKER_IMAGE="$NEW_IMAGE"
-docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --force-recreate --no-build
+# compose up이 nginx depends_on 헬스체크 실패로 non-zero 반환해도 계속 진행
+if ! docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d --force-recreate --no-build; then
+  log "⚠️ docker compose up reported an issue (proceeding to health check loop)"
+fi
 
 # ── Health check ──
 log "Running health check (max ${MAX_RETRIES} attempts)..."
