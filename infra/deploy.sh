@@ -36,9 +36,10 @@ fi
 log "Running health check (max ${MAX_RETRIES} attempts)..."
 HEALTHY=false
 for i in $(seq 1 "$MAX_RETRIES"); do
+  CSTATE=$(docker inspect "$CONTAINER_NAME" --format='{{.State.Status}}(restarts={{.RestartCount}},exit={{.State.ExitCode}})' 2>/dev/null || echo "missing")
   HEALTH_RESPONSE=$(docker exec "$CONTAINER_NAME" wget -qO- "$HEALTH_URL" 2>/dev/null || echo "")
   STATUS=$(echo "$HEALTH_RESPONSE" | grep -o '"status":"[^"]*"' | head -1 || echo "")
-  log "Health response (attempt $i): ${HEALTH_RESPONSE:-(no response)}"
+  log "Attempt $i: ${CSTATE} | ${HEALTH_RESPONSE:-(no response)}"
   if echo "$STATUS" | grep -q '"UP"'; then
     log "✅ Health check passed (attempt $i/${MAX_RETRIES})"
     HEALTHY=true
@@ -51,6 +52,9 @@ done
 # ── Rollback if unhealthy ──
 if [ "$HEALTHY" = false ]; then
   log "❌ Health check failed after ${MAX_RETRIES} attempts"
+  log "=== Last 80 lines of container logs ==="
+  docker logs "$CONTAINER_NAME" --tail 80 2>&1 || true
+  log "=== End of container logs ==="
 
   if [ -n "$PREVIOUS_IMAGE" ]; then
     log "🔄 Rolling back to ${PREVIOUS_IMAGE}..."
