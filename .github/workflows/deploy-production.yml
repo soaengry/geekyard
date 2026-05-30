@@ -94,7 +94,8 @@ jobs:
       - name: Build
         working-directory: frontend
         env:
-          VITE_API_URL: https://api.${{ secrets.PRODUCTION_DOMAIN }}
+          VITE_API_BASE_URL: https://api.${{ secrets.PRODUCTION_DOMAIN }}
+          VITE_OAUTH2_BASE_URL: https://api.${{ secrets.PRODUCTION_DOMAIN }}/oauth2/authorization
         run: npm run build
 
       - name: Transfer dist to server
